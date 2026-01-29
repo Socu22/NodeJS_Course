@@ -7,9 +7,8 @@ const numberTwo = "2.30";
 // add those two numbers and show the result
 // you cannot touch line 1 neither line 2
 
-let sum =parseFloat(numberOne) + parseFloat(numberTwo);
+let sum = parseFloat(numberOne) + parseFloat(numberTwo);
 console.log(sum);
-
 
 // --------------------------------------
 // Exercise 4 - Add the numbers and the total with 2 decimals
@@ -17,9 +16,8 @@ console.log(sum);
 const anotherNumberOne = "1.10";
 const anotherNumberTwo = "2.30";
 
-sum=(parseFloat(anotherNumberOne) + parseFloat(anotherNumberTwo)).toFixed(2);
+sum = (parseFloat(anotherNumberOne) + parseFloat(anotherNumberTwo)).toFixed(2);
 console.log(sum);
-
 
 // --------------------------------------
 // Exercise 5 - Decimals and average
@@ -28,13 +26,10 @@ const one = 10;
 const two = 45;
 const three = 98;
 
-
-
 // Show in the console the avg. with 5 decimals
-sum = parseFloat(one+two+three);
+sum = parseFloat(one + two + three);
 const avg = (sum / 3).toFixed(2);
 console.log(avg);
-
 
 // --------------------------------------
 // Exercise 6 - Get the character by index
@@ -42,10 +37,8 @@ console.log(avg);
 const letters = "abc";
 // Get me the character "c"
 
-const letterC = letters[2]
+const letterC = letters[2];
 console.log(letterC);
-
-
 
 // --------------------------------------
 // Exercise 7 - Replace
@@ -54,12 +47,6 @@ const fact = "You are learning javascript!";
 
 // capitalize the J in Javascript
 
-
-console.log(fact.replace("j","J"));
-
-
+console.log(fact.replace("j", "J"));
 
 // --------------------------------------
-
-
-
