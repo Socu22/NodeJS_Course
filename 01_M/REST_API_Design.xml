@@ -1,0 +1,45 @@
+<api name="Beer API" version="1.0">
+     <endpoint path="/beers">
+        <method type="GET">
+             <description>Retrieves all beer resources </description>
+        </method>
+
+     </endpoint>
+     <endpoint path="/beers/{id}">
+        <method type="GET">
+             <description>Retrieves a beer resource by id </description>
+        </method>
+
+     </endpoint>
+      <endpoint path="/beers">
+        <method type="POST">
+             <description>Creates a new beer resource by body </description>
+        </method>
+
+     </endpoint>
+     <endpoint path="/beers/{id}">
+        <method type="PUT">
+             <description>Updates a beer resource by id </description>
+        </method>
+
+     </endpoint>
+     <endpoint path="/beers/{id}">
+        <method type="PATCH">
+             <description>Updates a part of a beer resource by id </description>
+        </method>
+
+     </endpoint>
+     <endpoint path="/beers">
+        <method type="DELETE">
+             <description>Deletes a beer resource by body </description>
+        </method>
+
+     </endpoint>
+
+
+
+
+
+
+
+</api>
