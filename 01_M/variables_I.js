@@ -1,8 +1,16 @@
 // node REPL -->  Read-Eval-Print Loop
 //node is a runtime-enviroment. which is the foundation for electron, who makes chatgpt. CLI, Desktop apps. 
 
-// type coercion 
-// strict equality
+// type coercion: javascript won't fail and cause exceptions when trying to add to incompatiable types. 
+// It will try hard even if it does not make sense to add things together. 
+// As it is made normally for front end we have to make sure type coercion does not happend
+    // ==
+    // !=
+    //+
+    //-
+// strict equality: is a way to avoid type coercion and check whether something really is equal to another.
+    // ===
+    //!==
 
 
 // Rules
@@ -31,3 +39,16 @@ people.push("Victor");
 console.log(people);
 
 // ASI, Automatic semi-colon insertion 
+
+// how to define string in js 
+// ""
+// ''
+// ``
+
+const stringTemplateLitteral = `His is it  ${2+2} : ${person.age}
+& multi line 
+String
+    It works 
+
+`
+console.log(stringTemplateLitteral);
