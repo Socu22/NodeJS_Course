@@ -4,15 +4,21 @@ const express = require("express");
 // instantiate express
 const app = express();
 
+app.use(express.json() ); // if a json body is undefined you have to use this body parser of the express dependency 
+
 //one-liner version
 //const app = require("express")();
 
+//console.log(__dirname) this gives your current path
 // as a Client you request then the server sends a Response. we are the server, this means we can give a response without recieving a request.
 app.get("/", (req,res)=>{
-    res.send({data: "welcome to this server!"});
+    res.sendFile(__dirname+'/index.html'); // Path must be absolute 
     
 });
-
+app.get("/xss", (req,res)=>{
+    res.sendFile(__dirname+'/xss.html'); // Path must be absolute 
+    
+});
 
 // /snowstorms repsond with warning
 app.get("/snowstorms",(req,res)=>{
@@ -29,9 +35,24 @@ app.get("/cars/:carModel/:year",(req,res)=>{
 
 // 
 app.get("/bag",(req,res)=>{
-    res.send({data : req.query})
+    res.send({data : req.query});
 })
 
+
+app.post("/dinosaurs", (req,res) => {
+    console.log(req.body);
+    res.send(req.body)
+    
+}) 
+
+let energidrinks = []
+// post route to /energidrinks
+app.post("/energidrinks", (req,res) => {
+   // console.log(req.body);
+    energidrinks.push(req.body)
+    console.log(energidrinks);
+    res.send({data : req.body})
+})
 
 
 
