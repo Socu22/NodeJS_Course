@@ -38,6 +38,25 @@ app.get("/bag",(req,res)=>{
     res.send({data : req.query});
 })
 
+// proxy. client request from server who send a request to another server who then sends a respose to the client 
+app.get("/proxy", (req,res) => {
+    /*
+    fetch('https://www.google.com/').then((response) => response.text()).then((result) => {
+        console.log(result)
+        res.send(result)
+
+    })
+        */
+    //use Text encoder. check parrent code. problems: encoder, static files images. 
+    // insert a better solution from teacher  repo 
+     fetch("https://www.google.com/")
+    .then((response) => response.arrayBuffer())
+    .then((buffer) => {
+        const decoder = new TextDecoder("ISO-8859-1");
+        const text = decoder.decode(buffer);
+        res.send(text);
+    });
+})
 
 app.post("/dinosaurs", (req,res) => {
     console.log(req.body);
