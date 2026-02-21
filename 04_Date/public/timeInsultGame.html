@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .frontpage-title {
+        color: maroon;
+      }
+      body {
+        font-family: sans-serif;
+      }
+    </style>
+    <title>TimeInsultGame</title>
+  </head>
+
+  <body>
+    <h2 class="frontpage-title">Time Insult Game</h2>
+
+    <p>
+      Click START. Click STOP when you think <strong>20 seconds</strong> have
+      passed. <br />(Do not count. You will.)
+    </p>
+
+    <h2 id="guess-response">Waiting...</h2>
+
+    <button id="guess-button" onclick="guessFunction()">START</button>
+
+    <script>
+      const guessResponse = document.getElementById("guess-response");
+      const button = document.getElementById("guess-button");
+
+      const guessInSeconds = 20;
+      let startTime = null;
+
+      function guessFunction() {
+        if (!startTime) {
+          startTime = Date.now();
+          button.textContent = "STOP";
+          guessResponse.textContent = "...?";
+          const quarter = guessInSeconds * 1000 * 0.25;
+          const threeQuarters = guessInSeconds * 1000 * 0.75;
+
+          setTimeout(() => {
+            if (startTime) {
+              guessResponse.textContent = "Now!!";
+            }
+          }, quarter);
+
+          setTimeout(() => {
+            if (startTime) {
+              guessResponse.textContent = "Just kidding its now!!";
+            }
+          }, threeQuarters);
+
+          setTimeout(() => {
+            if (startTime) {
+              guessResponse.textContent = "Too late.";
+            }
+          }, guessInSeconds * 1000);
+          return;
+        }
+
+        const stopTime = Date.now();
+        const deltaMs = stopTime - startTime;
+        const deltaSeconds = (deltaMs / 1000).toFixed(2);
+        const error = (deltaSeconds - guessInSeconds).toFixed(2);
+
+        let verdict = "";
+
+        if (Math.abs(error) < 0.2) {
+          verdict = "Accident. Do not get confident.";
+        } else if (error < -1) {
+          verdict = "Impatient. You panicked.";
+        } else if (error < 0) {
+          verdict = "Overconfident. You rushed it.";
+        } else if (error > 1) {
+          verdict = "Distracted. You lost track completely.";
+        } else {
+          verdict = "Hesitant. You waited too long.";
+        }
+
+        guessResponse.replaceChildren(); // clears existing
+
+        const guessed = document.createElement("div");
+        guessed.textContent = `You guessed: ${deltaSeconds}s`;
+
+        const errorDiv = document.createElement("div");
+        errorDiv.textContent = `Error: ${error}s`;
+
+        const verdictDiv = document.createElement("div");
+        verdictDiv.textContent = "Verdict: ";
+
+        const strong = document.createElement("strong");
+        strong.textContent = verdict;
+
+        verdictDiv.appendChild(strong);
+
+        guessResponse.append(guessed, errorDiv, verdictDiv);
+
+        // Reset
+        startTime = null;
+        button.textContent = "TRY AGAIN";
+      }
+    </script>
+  </body>
+</html>
