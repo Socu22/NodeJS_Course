@@ -1,0 +1,28 @@
+{
+  "name": "online_node_repl",
+  "version": "0.0.1",
+  "description": "Website for Node in a REPL",
+  "keywords": [
+    "Website",
+    "node",
+    "repl"
+  ],
+  "homepage": "https://github.com/Socu22/NodeJS_Course#readme",
+  "bugs": {
+    "url": "https://github.com/Socu22/NodeJS_Course/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Socu22/NodeJS_Course.git"
+  },
+  "license": "MIT",
+  "author": "Socu",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

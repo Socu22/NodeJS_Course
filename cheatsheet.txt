@@ -1,1 +1,4 @@
+npm init      (to start up a website)
+npm install  (based on package.json)
+npm isntall packagename
 npm install -g nodemon //  a tool for coding 

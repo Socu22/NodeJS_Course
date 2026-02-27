@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirection</title>
+  </head>
+  <body>
+    <h1>Farewell</h1>
+    <a href="/"> Take me away to the dark side</a>
+
+    <!-- ES Modules -->
+    <script type="module" src="./redirection.js"></script>
+
+    <script>
+      function redirectionInSec(secs) {
+        setTimeout(() => {
+          //window is a global object you can just call without importing
+          window.location.href = "/"; // change to your route
+        }, secs * 1000);
+      }
+
+      redirectionInSec(3);
+    </script>
+  </body>
+</html>
