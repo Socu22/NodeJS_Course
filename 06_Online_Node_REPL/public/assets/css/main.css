@@ -1,0 +1,14 @@
+#logo {
+  height: 10vh;
+  min-height: 8rem;
+}
+
+body {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}

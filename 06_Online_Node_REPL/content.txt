@@ -113,10 +113,15 @@ DELETE /beers → Delete a beer (based on body)
 Extra tools 
 ASI, Automatic semi-colon insertion. An example of this could be Prettier ESLint vs code extension. It automatically sets up code blocks & inserts semi-colons. 
 
-modules, windows
+modules, windows, process
 
 status codes:
 2xx: Succes
 3xx: Redirection 
 4xx: Client error 
 5xx: Server error 
+
+// unsorted 
+wrapper: nodemon, cross-env
+
+Semantic html : optimized html 

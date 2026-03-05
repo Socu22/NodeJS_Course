@@ -20,9 +20,11 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-dev": "cross-env PORT=8080 NODE_ENV=DEV node app.js",
+    "start-prod": "cross-env PORT=8080 node app.js"
   },
   "dependencies": {
+    "cross-env": "^10.1.0",
     "express": "^5.2.1"
   }
 }
