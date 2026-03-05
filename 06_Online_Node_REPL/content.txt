@@ -1,30 +1,40 @@
 --------Node.JS---------
 
+
+Node.js Overview – Runtime environment, REPL, server & web apps
 What is it? 
-A runtime-enviroment used for servers, web apps, command line tools and scripts. 
+A runtime-environment used for servers, web apps, command line tools and scripts. 
 You can use node REPL(Read-Eval-Print Loop) as it is a terminal interface for nodejs it is a way to run nodejs code directly.
 This is build upon the frontend javascript language, which means it has the javascripts type of type coercion. 
-As a frontend based language node.js it will try hard, even if it does not make sense to add things together. 
+As a frontend based turned server based language, node.js aslo like javascript try hard, even if it does not make sense to add things together. 
 This means that it won't fail and cause exceptions when trying to add to incompatiable types using these types of operators "==,!=,+,-". 
 For example "5" == 5 this logic is true when type coercion happens. You can also use + directly to plus and object & a number. 
+
+JavaScript Type Coercion – Implicit type conversions, equality checks
 This type coercion obviously needs to be hardcoded to actually check the types being compared so usually it is checked with if statements. 
 This where you use strict equallity as way to avoid type coercion and check whether something really is equal to another, "===, !==". If we take the previous example
 then "5" === 5 will be false as this logic should be in other languages.
-Allways declare the statement type, When you instantiate statements use 'const' as default,
+
+Variable Declarations – const, let, var, scope, mutability
+Always declare the statement type, When you instantiate statements use 'const' as default,
 unless if it needs to change then use 'let'. 'const' is only constant in that it is assigned but not in its value.
 if it is some statement thats needed globally then use 'var'. 
 
+
+JavaScript Data Types – Strings, numbers, booleans, objects, null, undefined
 When statements, function references, functions, are made, key value pairs everything, with its associated key & value. Even if no value is assigned in a const 
 it will still put the undefined as the value. Even if a Function reference other than its key beings its name the value is a reference for it being a functions reference.
 Js data types: String, Number, Boolean(true, false), BigInt, Object(Object, arrays === type of object), Symbol, null, undefined. 
 String values look like this ["This is a 'test' ", 'and reversely like "this" in this ', ` and you can insert an const statements
 like this ${key} in this. it is exclusive to this type along with multi line capability`]. Strings are also in itself an array.
 
+Functions & Callbacks – First-class functions, hoisting, arrow functions
 Functions are first-class citizens which means they come first compared to everything else, all functions are hoisted to be instantiated in the beggining 
 automatically no matter where/when in the code it is instantiated. So other code can use it in whichever sequence you want. One of the important ones is the 
 arrow function used in callback functions. Callback function is a function thats referenced by another as an argument function genericActionPerformer(number, action)
 or like this function genericActionPerformer(number, () => {functionLogic}) 
 
+Functional Array Methods – map, forEach, filter, reduce, side-effect handling
 Functional coding, when looping through an array you usually use: map .forEach .filter .reduce .sort .find .findIndex .indexOf, ect. When reading use .forEach unless 
 you need the data afterwerwards then use .map as it has fewer side effects and actually returns a 1:1 new array,
 instead of having to create a new const for the looped data. This requires a ternary statement "condition ? if true : if false" & a spread operator "...objects"
@@ -33,9 +43,23 @@ won't be enough. The side effects here is that even if you make a new const with
 return obejct} ) then it will change the orginalObjects as well. you need to manually send each object to the newObjects with
 newObjects.map((object) => {keyNumber: condition ? ifTrueThen : ifFalseThen, ...object }) )  
 
+Date Handling in JavaScript – UTC, local time, Date object methods
+console.log(new Date()); // UTC Date + Time  // .get?() for FullYear, Month, Date, Day, Hours, Minutes, Seconds, Milliseconds
+console.log(Date()); // Local Time.
+console.log(Date.now()); // Unix Epoch Time (Miliseconds since Jan. 1st 1970)
+const date = new Date().toLocaleDateString("en-uk",{
+        weekday:"long", // short, narrow
+        year:"numeric", //2-digit
+        month:"numeric", // 2-digit, long, short, narrow
+        day:"numeric"   // 2-digit
+    })
+
+Running Node.js Projects – node CLI, nodemon, executing files
 How do you set up a website & run it ? 
 For us developers to run node we use the node REPL, with the command "node fileName.js" at the correct path, or through ../folder/fileName.js.
 You can also choose to download a tool "npm install nodemon", as it is global you can use it wherever you want, it is the same syntax, "nodemon fileName.js". 
+
+npm and Project Setup – package.json, dependencies, folder structure
 Nodejs uses 'npm' as a build tool that you can use to install dependencies in a package.json file for your websites in a package/folder.  
 To setup use the command "npm init" then "npm install express", or you could set up an package.json yourself & then
 tell it to install its dependencies through "npm install" when setting up local websites. 
@@ -46,82 +70,257 @@ tell it to install its dependencies through "npm install" when setting up local 
 }
 These dependencies are downloaded into node_modules together with other automatically configured data to get nodejs to run on this operating system, 
 that package acts as a library for the website. Each of the other fileName.js is also known as a module in nodejs.
+There are other build tools other than npm, like pip for python, maven & gradle for java. There lies a difference 
+between those different build tools. But for the most part they are acting for the most part a package manager like npm, pip. 
+But some also enforce a structure you have to follow like maven. But most have a file which contians dependencies like package.json. 
+You choose based on the project size, familiarty of use to the team, and the structure & ecosystem. I chose nodejs with npm
+as it is more flexible and enforces less upon me than for example maven and its lifecycle structure.  
 
+Express Server Setup – Routes, static files, client-server model, status codes
 Choose a structure to follow & here we mostly express
 websites which means we follow their documentation of the core of the website being a app.js, which stands for the server side of the website. Other than that we setup
 the packages which contains the whole life cycle of this website is based on scripts, .js, .css, .html.
-            --> util --> 
+            --> util --> x.js
 MainPackage 
-            --> public --> websitePage --> scripts
+            --> public --> pages --> page --> scripts
+                      --> assets --> css/js/imamges --> main.css/x.js/x.png
+client-server model. Universally the model follows client reqeust to the server, and the server sends back a response.
+Request example: 
+fetch("/examples")
+  .then(res => res.json())
+  .then(data => console.log(data));
+fetch("/examples", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id: 3, name: "Example 3" })
+});
+Response example: 
+{
+    "id": 1,
+	"title": "example1"
+}
+When you get a response the status code differ based on the result of the response to the clients Request.
+status codes:
+2xx: Succes
+3xx: Redirection 
+4xx: Client error 
+5xx: Server error 
+Client files = what runs in the browser (HTML, CSS, frontend JS). 
+Server files = backend code and API endpoints.
 
-Now it is time to set up the endpoints for Pages & API? 
+REST API Conventions – HTTP verbs, CRUD endpoints, plural nouns
+how a rest api endpoints universally look like / follows established conventions: 
+This is the order of HTTP verb. In the right order. The noun of the data has to be in plural as it reflects the backends table. 
+GET /examples → Retrieve all examples
+GET /examples/{id} → Retrieve a specific example by ID
+POST /examples → Create a new example (data in body)
+PUT /examples/{id} → Fully update/replace an example by ID
+PATCH /examples/{id} → Partially update a example by ID
+DELETE /examples → Delete a example (based on body)
+
+
+ES Modules vs CommonJS – Import/export syntax, live bindings, top-level await
+ES Modules (ECMAScript Modules) it is modern way to organize code into separate file scripts with import & export Functionallity. 
+The old way was commonjs. As ES modules are newer, there are intergrated Asynchronous instead of Synchronous loading time. Each of the 
+Modules has Always been its own scope, in commonjs, it is cached, in ES modules on top of something similiar to caching,
+it has live bindings which binds everything which imports the module to its live changes, which commonjs doesn't as it 
+only makes a cache when it requires it one time. At the same time Top-level await is in ES modules, which means you can 
+say 'await' for a response when fetching data / when sending a Request and awaiting a response outside of a function. It 
+bypasses one of the limitation of its javascript foundation as well as commonjs.   
+The logic required for commonjs is outcommented below. While the uncommented is ES Moduels. 
 Firstly if you assume that you will make a whole rest endpoints with full crud Functionallity.
 Secondly Import express. 
 // const express = require('express');
 import express from "express"; 
 Thirdly instantiate the website. 
 const app = express();
-app.use(express.json());
-app.use(express.static("public"));
-import path from "path";
+app.use(express.json());  // handles undefined json body.
+app.use(express.static("public"));  // A static package with modules of scripts inside.
+import path from "path"; // the library for absolute path resolve, instead of __dirname to get the absolute path, we use in ES Moduels.
 app.get("/", (req, res) => {
   //res.sendFile(__dirname + "/index.html"); // Path must be absolute
     res.sendFile(path.resolve("public/frontpage/index.html"));
 }); 
+let examples = [
+  {id: 1, title: "example1"},
+  {id: 2, title: "example2"},
+]
+let nextID = 3;  
+app.get("/examples",(req,res) => {
+    console.log(example);
+    res.send({data: examples});
+}) 
 app.get("/examples/:id", (req, res) => { (query string / query parameters)
   const id = Number(req.params.id); + // 
-
   const foundExample = examples.find(example => example.id === id);
-
   if (!foundExample) {
     return res.status(404).send({
       errorMessage: "Example not found"
     });
   }
-
   res.status(201).send({ data: foundExample });
 });
-app.post("/examples", (req, res) => { (Json body is undefined handling )
+app.post("/examples", (req, res) => { (Json body handles of undefined )
   if (!req.body.text) {
     return res.status(400).send({
       errorMessage: "Text is required"
     });
   }
-
   const newExample = {
-    id: nextId++,
+    id: nextId++,         (simulates mysql Automatic-ID) 
     title: req.body.title
   };
-
   examples.push(newExample);
-
   res.status(201).send({ data: newExample });
 });
-app.listen(8080, () => {
-  console.log("Server is running on port", 8080);
+app.get("/test", (req, res) => {
+  res.redirect("/examples"); // Server side redirect. client side redirection can only happen through html & javascript when session is running.
+})
+const PORT = process.env.PORT || 8080; // uses a default port if .PORT is undefined. To be defined linux(bash) & macOS(zsh): 'PORT=9090 node app.js', Windows PowerShell: '$env:PORT=9090 node app.js', Windows CMD: 'set PORT=9090 node app.js'
+const server = app.listen(PORT, () => {
+  console.log("Server started on port", server.address().port);
 });
+package.json: 
+{
+  "type": "module", // default is commonjs
+    "scripts": {   // usually used for tests
+    "start-dev": "cross-env PORT=8080 NODE_ENV=DEV node app.js", // dev mode script. npm run start-dev
+    "start-prod": "cross-env PORT=8080 node app.js" // production mode script.  npm run start-prod
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0", // wrapper to unite one way of defining PORT. 
+    "express": "^5.2.1"
+  }
+}
+import & export  ES Moduels
+math.js script: Export with more than one function.
+export function add(a, b) {
+  return a + b;
+}
+export const pi = 3.14;
+greet.js script: Defualt export with one function.
+export default function greet() {
+  console.log("Hello!");
+}
+import & export  commonjs
+math.js script: Export with more than one function.
+export function subtract(a, b) {
+  return a - b;
+}
+export const pi = 3.14;
+module.exports = {
+  Pi,
+  subtract
+  };
+app.js script: 
+ES Moduels
+The difference is that with more than one function it requires the name and {x, x, x} of the function imported.  
+import { add, pi } from "./math.js";
+console.log(add(2, 3));
+console.log(pi);
+The difference is default makes the {} irrelevant & what you name the function as you know there only one function.
+import blabla from "./greet.js";
+greet();
+commonjs
+const aboutme = require("./aboutme");
+
+Semantic HTML & Sticky Footer – Header, main, footer, nav, Flexbox styling
+Semantic html : optimized html 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/icon.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/page/page.css">
+    <!-- External CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css"
+    />
+    <title>Semantic HTML Example</title>
+</head>
+<body>
+     <!-- Navigation -->
+    <header>
+      <nav>
+        <a href="/"
+          ><img id="logo" src="/assets/images/icon.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+        <article>
+            <h2>Article Title</h2>
+            <p>This is a self-contained article.</p>
+        </article>
+        <aside>
+            <p>Sidebar content, related info.</p>
+        </aside>
+    </main>
+     <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+</body>
+</html>
+This is the one way of to style a footer to be at the buttom.
+main.css script: 
+#logo {
+  height: 10vh;
+  min-height: 8rem;
+}
+body {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+}
+footer.js script: 
+function setcopyrightyear() {
+  const copyrightYearSpan = document.getElementById("copyright-year");
+  copyrightYearSpan.textContent = "©" + new Date().getFullYear();
+}
+setcopyrightyear();
+
+XSS Prevention – Sanitizing input, innerHTML vs textContent
+For prevention of Cross-Site Scripting (XSS) when displaying user input on a webpage. This make the page secure when using 
+.innerHTML, if you want to prevent using this function then use .innertext or .textContent & avoid using the vulnable .innerhtml.
+function sanitizeXSS(string) {
+    return string
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;')
+        .replaceAll('`', '&#x60;')
+        .replaceAll('/', '&#x2F;');
+}
+const userComment = '<script>alert("Hacked!")</script>';
+const safeComment = sanitizeXSS(userComment);
+document.getElementById("comment").innerHTML = safeComment;
 
 
-how a rest api endpoints look like ?
-GET /beers → Retrieve all beers
-GET /beers/{id} → Retrieve a specific beer by ID
-POST /beers → Create a new beer (data in body)
-PUT /beers/{id} → Fully update/replace a beer by ID
-PATCH /beers/{id} → Partially update a beer by ID
-DELETE /beers → Delete a beer (based on body)
 
+Extra Tools and Notes – ASI, Prettier, ESLint, wrappers
 Extra tools 
 ASI, Automatic semi-colon insertion. An example of this could be Prettier ESLint vs code extension. It automatically sets up code blocks & inserts semi-colons. 
 
 modules, windows, process
 
-status codes:
-2xx: Succes
-3xx: Redirection 
-4xx: Client error 
-5xx: Server error 
-
-// unsorted 
 wrapper: nodemon, cross-env
 
-Semantic html : optimized html 
