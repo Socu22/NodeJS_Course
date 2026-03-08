@@ -20,7 +20,6 @@ Always declare the statement type, When you instantiate statements use 'const' a
 unless if it needs to change then use 'let'. 'const' is only constant in that it is assigned but not in its value.
 if it is some statement thats needed globally then use 'var'. 
 
-
 JavaScript Data Types – Strings, numbers, booleans, objects, null, undefined
 When statements, function references, functions, are made, key value pairs everything, with its associated key & value. Even if no value is assigned in a const 
 it will still put the undefined as the value. Even if a Function reference other than its key beings its name the value is a reference for it being a functions reference.

@@ -1,0 +1,30 @@
+{
+  "name": "06.mandatory1_documentationserver",
+  "version": "0.0.1",
+  "description": "Mandatory assigment 1. The node.js Documentation Server!",
+  "keywords": [
+    "Documentation",
+    "Server",
+    "express",
+    "path"
+  ],
+  "homepage": "https://github.com/Socu22/NodeJS_Course#readme",
+  "bugs": {
+    "url": "https://github.com/Socu22/NodeJS_Course/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Socu22/NodeJS_Course.git"
+  },
+  "license": "MIT",
+  "author": "Lucas/Socu",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0",
+    "express": "^5.2.1"
+  }
+}

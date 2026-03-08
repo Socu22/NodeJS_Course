@@ -1,0 +1,22 @@
+#logo {
+  height: 10vh;
+  min-height: 8rem;
+}
+
+code.inline {
+  background: light-dark(rgb(51, 67, 87), #c6c2c2);
+}
+
+pre code {
+  line-height: 1.5;
+}
+
+body {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
