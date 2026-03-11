@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/nodejs_logo.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link
+      rel="stylesheet"
+      href="/pages/frontend-security-tools/frontend-security-tools.css"
+    />
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/assets/css/default.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+
+    <title>Frontend Security Tools</title>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav id="navbar">
+        <a href="/"
+          ><img id="logo" src="/assets/images/nodejs_logo.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <article>
+        <h2>frontend-security-tools</h2>
+
+        <p>
+          Semantic HTML & Sticky Footer – Header, main, footer, nav, Flexbox
+          <br />
+          styling Semantic html : optimized html
+        </p>
+
+        <pre><code>
+&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    /&gt;
+    &lt;!-- Favicon --&gt;
+    &lt;link
+      rel="icon"
+      type="image/png"
+      href="/assets/images/icon.png"
+    /&gt;
+    &lt;!-- Local CSS --&gt;
+    &lt;link rel="stylesheet" href="/assets/css/main.css" /&gt;
+    &lt;link rel="stylesheet" href="assets/css/page/page.css" /&gt;
+    &lt;!-- External CSS --&gt;
+    &lt;link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    /&gt;
+    &lt;link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css"
+    /&gt;
+    &lt;title&gt;Semantic HTML Example&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- Navigation --&gt;
+    &lt;header&gt;
+      &lt;nav&gt;
+        &lt;a href="/"&gt;
+          &lt;img
+            id="logo"
+            src="/assets/images/icon.png"
+            alt="icon logo"
+          /&gt;
+        &lt;/a&gt;
+        &lt;a href="/about"&gt;About&lt;/a&gt;
+      &lt;/nav&gt;
+    &lt;/header&gt;
+    &lt;!-- Main Content --&gt;
+    &lt;main&gt;
+      &lt;article&gt;
+        &lt;h2&gt;Article Title&lt;/h2&gt;
+        &lt;p&gt;This is a self-contained article.&lt;/p&gt;
+      &lt;/article&gt;
+      &lt;aside&gt;
+        &lt;p&gt;Sidebar content, related info.&lt;/p&gt;
+      &lt;/aside&gt;
+    &lt;/main&gt;
+    &lt;!-- Footer --&gt;
+    &lt;footer&gt;
+      &lt;span id="copyright-year"&gt;&lt;/span&gt;
+    &lt;/footer&gt;
+    &lt;!-- Scripts --&gt;
+    &lt;script src="/assets/js/footer.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+        </code></pre>
+
+        <p>
+          This is the one way of to style a footer to be at the bottom.
+           <br> main.css script:
+           <pre><code>
+                #logo {
+                height: 10vh;
+                min-height: 8rem;
+                }
+                body {
+                min-height: 95vh;
+                display: flex;
+                flex-direction: column;
+                }
+                main {
+                flex: 1;
+                }
+
+           </code></pre>
+          
+          
+
+          footer.js script:
+          <pre><code>
+
+            function setcopyrightyear() {
+            const copyrightYearSpan = document.getElementById("copyright-year");
+            copyrightYearSpan.textContent = "©" + new Date().getFullYear();
+            }
+            setcopyrightyear();
+
+          </code></pre>
+          
+          XSS Prevention – Sanitizing input, innerHTML vs
+          textContent 
+          <br> For prevention of Cross-Site Scripting (XSS) when
+          displaying user input on a webpage. This make the page secure when
+          using .innerHTML, if you want to prevent using this function then use
+          .innertext or .textContent & avoid using the vulnable .innerhtml.
+          <pre><code>
+                function sanitizeXSS(string) {
+                    return string
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#39;')
+                        .replaceAll('`', '&#x60;')
+                        .replaceAll('/', '&#x2F;');
+                }
+                const userComment = '&lt;script&gt;alert("Hacked!")&lt;/script&gt;';
+                const safeComment = sanitizeXSS(userComment);
+                document.getElementById("comment").innerHTML = safeComment;
+
+          </code></pre>
+          
+         
+          
+          <br> Extra Tools and Notes – ASI, Prettier, ESLint, wrappers
+          Extra tools ASI, Automatic semi-colon insertion. An example of this
+          could be Prettier ESLint vs code extension. It automatically sets up
+          code blocks & inserts semi-colons. modules, windows, process wrapper:
+          nodemon, cross-env
+        </p>
+        <p>This is a<code>test</code> self-contained article.</p>
+      </article>
+      <h2>Example Express Server</h2>
+
+      <pre>
+        <code >
+const express = require("express");
+const app = express();
+
+app.get("/", (req,res)=>{
+    res.send("Hello world");
+});
+
+app.listen(8080);
+        </code>
+     </pre>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

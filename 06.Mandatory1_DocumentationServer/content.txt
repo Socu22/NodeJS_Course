@@ -27,6 +27,8 @@ Js data types: String, Number, Boolean(true, false), BigInt, Object(Object, arra
 String values look like this ["This is a 'test' ", 'and reversely like "this" in this ', ` and you can insert an const statements
 like this ${key} in this. it is exclusive to this type along with multi line capability`]. Strings are also in itself an array.
 
+---------i am here : 1
+
 Functions & Callbacks – First-class functions, hoisting, arrow functions
 Functions are first-class citizens which means they come first compared to everything else, all functions are hoisted to be instantiated in the beggining 
 automatically no matter where/when in the code it is instantiated. So other code can use it in whichever sequence you want. One of the important ones is the 
@@ -53,6 +55,9 @@ const date = new Date().toLocaleDateString("en-uk",{
         day:"numeric"   // 2-digit
     })
 
+---------i am here : 2
+
+
 Running Node.js Projects – node CLI, nodemon, executing files
 How do you set up a website & run it ? 
 For us developers to run node we use the node REPL, with the command "node fileName.js" at the correct path, or through ../folder/fileName.js.
@@ -74,6 +79,9 @@ between those different build tools. But for the most part they are acting for t
 But some also enforce a structure you have to follow like maven. But most have a file which contians dependencies like package.json. 
 You choose based on the project size, familiarty of use to the team, and the structure & ecosystem. I chose nodejs with npm
 as it is more flexible and enforces less upon me than for example maven and its lifecycle structure.  
+
+---------i am here : 3
+
 
 Express Server Setup – Routes, static files, client-server model, status codes
 Choose a structure to follow & here we mostly express
@@ -222,6 +230,8 @@ import blabla from "./greet.js";
 greet();
 commonjs
 const aboutme = require("./aboutme");
+
+---------i am here : 4
 
 Semantic HTML & Sticky Footer – Header, main, footer, nav, Flexbox styling
 Semantic html : optimized html 

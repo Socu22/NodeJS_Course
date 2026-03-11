@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/nodejs_logo.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/pages/nodejs-basics/nodejs-basics.css" />
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/assets/css/default.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+
+    <title>index</title>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav id="navbar">
+        <a href="/"
+          ><img id="logo" src="/assets/images/nodejs_logo.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <article>
+        <h2>nodejs-basics</h2>
+
+        <p>
+          Node.js Overview – Runtime environment, REPL, server & web apps What
+          is it? A runtime-environment used for servers, web apps, command line
+          tools and scripts. You can use node REPL(Read-Eval-Print Loop) as it
+          is a terminal interface for nodejs it is a way to run nodejs code
+          directly.
+          <br />
+          This is build upon the frontend javascript language, which means it
+          has the javascripts type of type coercion. As a frontend based turned
+          server based language, node.js aslo like javascript try hard, even if
+          it does not make sense to add things together. This means that it
+          won't fail and cause exceptions when trying to add to incompatiable
+          types using these types of operators "==,!=,+,-". <br />For example
+          "5" == 5 this logic is true when type coercion happens. You can also
+          use + directly to plus and object & a number. <br /><br />JavaScript
+          Type Coercion – Implicit type conversions, equality checks <br />
+          This type coercion obviously needs to be hardcoded to actually check
+          the types being compared so usually it is checked with if statements.
+          This where you use strict equallity as way to avoid type coercion and
+          check whether something really is equal to another, "===, !==".
+          <br />If we take the previous example then "5" === 5 will be false as
+          this logic should be in other languages. <br />
+          <br />
+          Variable Declarations – const, let, var, scope, mutability Always
+          declare the statement type, When you instantiate statements use
+          'const' as default, unless if it needs to change then use 'let'.
+          'const' is only constant in that it is assigned but not in its value.
+          if it is some statement thats needed globally then use 'var'.
+          <br /><br />
+          JavaScript Data Types – Strings, numbers, booleans, objects, null,
+          undefined <br />When statements, function references, functions, are
+          made, key value pairs everything, with its associated key & value.
+          Even if no value is assigned in a const it will still put the
+          undefined as the value. Even if a Function reference other than its
+          key beings its name the value is a reference for it being a functions
+          reference. <br />
+          Js data types: String, Number, Boolean(true, false), BigInt,
+          Object(Object, arrays === type of object), Symbol, null, undefined.
+          String values look like this ["This is a 'test' ", 'and reversely like
+          "this" in this ', ` and you can insert an const statements like this
+          ${key} in this. it is exclusive to this type along with multi line
+          capability`]. Strings are also in itself an array.
+        </p>
+        <p>This is a<code>test</code> self-contained article.</p>
+      </article>
+      <h2>Example Express Server</h2>
+
+      <pre>
+        <code >
+        const express = require("express");
+        const app = express();
+
+        app.get("/", (req,res)=>{
+            res.send("Hello world");
+        });
+
+        app.listen(8080);
+        </code>
+     </pre>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

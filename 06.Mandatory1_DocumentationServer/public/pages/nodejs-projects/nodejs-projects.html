@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/nodejs_logo.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/pages/nodejs-projects/nodejs-projects.css" />
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/assets/css/default.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+
+    <title>index</title>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav id="navbar">
+        <a href="/"
+          ><img id="logo" src="/assets/images/nodejs_logo.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <article>
+        <h2>nodejs-projects</h2>
+
+        <p>
+          Running Node.js Projects – node CLI, nodemon, executing files <br />
+          How do you set up a website & run it ? For us developers to run node
+          we use the node REPL, with the command "node fileName.js" at the
+          correct path, or through ../folder/fileName.js. You can also choose to
+          download a tool "npm install nodemon", as it is global you can use it
+          wherever you want, it is the same syntax, "nodemon fileName.js".
+          <br />
+
+          <br />npm and Project Setup – package.json, dependencies, folder
+          structure <br />
+          Nodejs uses 'npm' as a build tool that you can use to install
+          dependencies in a package.json file for your websites in a
+          package/folder. To setup use the command "npm init" then "npm install
+          express", or you could set up an package.json yourself & then tell it
+          to install its dependencies through "npm install" when setting up
+          local websites. <br />
+          <pre><code>{ "dependencies": { "express" : "5.2.1" } }</code></pre>
+          <br />
+          These dependencies are downloaded into node_modules together with
+          other automatically configured data to get nodejs to run on this
+          operating system, that package acts as a library for the website. Each
+          of the other fileName.js is also known as a module in nodejs. There
+          are other build tools other than npm, like pip for python, maven &
+          gradle for java. There lies a difference between those different build
+          tools. But for the most part they are acting for the most part a
+          package manager like npm, pip. But some also enforce a structure you
+          have to follow like maven. But most have a file which contians
+          dependencies like package.json. You choose based on the project size,
+          familiarty of use to the team, and the structure & ecosystem. I chose
+          nodejs with npm as it is more flexible and enforces less upon me than
+          for example maven and its lifecycle structure.
+        </p>
+        <p>This is a<code>test</code> self-contained article.</p>
+      </article>
+      <h2>Example Express Server</h2>
+
+      <pre>
+        <code >
+        const express = require("express");
+        const app = express();
+
+        app.get("/", (req,res)=>{
+            res.send("Hello world");
+        });
+
+        app.listen(8080);
+        </code>
+     </pre>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

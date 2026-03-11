@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/nodejs_logo.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link
+      rel="stylesheet"
+      href="/pages/express-rest-modules/express-rest-modules.css"
+    />
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/assets/css/default.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+
+    <title>index</title>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav id="navbar">
+        <a href="/"
+          ><img id="logo" src="/assets/images/nodejs_logo.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <article>
+        <h2>express-rest-modules</h2>
+
+        <p>
+          Express Server Setup – Routes, static files, client-server model,
+          status codes Choose a structure to follow & here we mostly express
+          websites which means we follow their documentation of the core of the
+          website being a app.js, which stands for the server side of the
+          website. Other than that we setup the packages which contains the
+          whole life cycle of this website is based on scripts, .js, .css,
+          .html. <br />
+          MainPackage --> util --> x.js <br />
+          MainPackage --> public --> pages --> page --> scripts<br />
+          MainPackage --> assets --> css/js/imamges --> main.css/x.js/x.png
+          <br />
+          <br />
+          client-server model. Universally the model follows client reqeust to
+          the server, and the server sends back a response.
+          <br />
+          Request example: 
+          <pre><code> fetch("/examples")
+            .then(res => res.json())
+            .then(data => console.log(data));
+            fetch("/examples", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: 3, name: "Example 3" })
+            });</code></pre>
+           
+            Response example: 
+            <pre><code> 
+                {
+                "id": 1,
+                "title": "example1"
+                }
+        </code></pre>
+           
+          When you get a response the status code differs based on the result of
+          the response to the clients Request. <br />
+          status codes: 2xx: <br />Succes 3xx: <br />Redirection 4xx: <br />
+          Client error 5xx: Server error Client <br />files = what runs in the
+          browser (HTML, CSS, frontend JS). <br />
+          Server files = backend code and API endpoints. <br />
+          <br />
+          REST API Conventions – HTTP verbs, CRUD endpoints, plural nouns <br />
+          how a rest api endpoints universally look like / follows established
+          conventions: This is the order of HTTP verb. In the right order. The
+          noun of the data has to be in plural as it reflects the backends
+          table. 
+          <br>GET /examples → Retrieve all examples 
+          <br> GET /examples/{id} →
+          Retrieve a specific example by ID 
+          <br> POST /examples → Create a new
+          example (data in body) 
+          <br> PUT /examples/{id} → Fully update/replace an
+          example by ID 
+          <br> PATCH /examples/{id} → Partially update a example by ID
+          <br>DELETE /examples/{id} →  Delete a example by ID (based on body) 
+          <br> <br> ES Modules vs
+          CommonJS – Import/export syntax, live bindings, top-level await
+          <br> ES
+          Modules (ECMAScript Modules) it is modern way to organize code into
+          separate file scripts with import & export Functionallity. The old way
+          was commonjs. As ES modules are newer, there are intergrated
+          Asynchronous instead of Synchronous loading time. Each of the Modules
+          has Always been its own scope, in commonjs, it is cached, in ES
+          modules on top of something similiar to caching, it has live bindings
+          which binds everything which imports the module to its live changes,
+          which commonjs doesn't as it only makes a cache when it requires it
+          one time. At the same time Top-level await is in ES modules, which
+          means you can say 'await' for a response when fetching data / when
+          sending a Request and awaiting a response outside of a function. It
+          bypasses one of the limitation of its javascript foundation as well as
+          commonjs. 
+          <br> <br>The logic required for commonjs is outcommented below. <br> While
+          the uncommented is ES Moduels. <br> Firstly if you assume that you will
+          make a whole rest endpoints with full crud Functionallity. <br> Secondly
+          Import express. <br>
+           <pre><code>// const express = require('express');
+                        import express from "express"; </code></pre>
+                                <br> Thirdly instantiate the website. <br>
+                                <pre><code>const app = express();
+                        app.use(express.json());  // handles undefined json body.
+                        app.use(express.static("public"));  // A static package with modules of scripts inside.
+                        import path from "path"; // the library for absolute path resolve, instead of __dirname to get the absolute path, we use in ES Moduels.
+                        app.get("/", (req, res) => {
+                        //res.sendFile(__dirname + "/index.html"); // Path must be absolute
+                            res.sendFile(path.resolve("public/frontpage/index.html"));
+                        }); 
+                        let examples = [
+                        {id: 1, title: "example1"},
+                        {id: 2, title: "example2"},
+                        ]
+                        let nextID = 3;  
+                        app.get("/examples",(req,res) => {
+                            console.log(example);
+                            res.send({data: examples});
+                        }) 
+                        app.get("/examples/:id", (req, res) => { (query string / query parameters)
+                        const id = Number(req.params.id); + // 
+                        const foundExample = examples.find(example => example.id === id);
+                        if (!foundExample) {
+                            return res.status(404).send({
+                            errorMessage: "Example not found"
+                            });
+                        }
+                        res.status(201).send({ data: foundExample });
+                        });
+                        app.post("/examples", (req, res) => { (Json body handles of undefined )
+                        if (!req.body.text) {
+                            return res.status(400).send({
+                            errorMessage: "Text is required"
+                            });
+                        }
+                        const newExample = {
+                            id: nextId++,         (simulates mysql Automatic-ID) 
+                            title: req.body.title
+                        };
+                        examples.push(newExample);
+                        res.status(201).send({ data: newExample });
+                        });
+                        app.get("/test", (req, res) => {
+                        res.redirect("/examples"); // Server side redirect. client side redirection can only happen through html & javascript when session is running.
+                        })
+                        const PORT = process.env.PORT || 8080; // uses a default port if .PORT is undefined. To be defined linux(bash) & macOS(zsh): 'PORT=9090 node app.js', Windows PowerShell: '$env:PORT=9090 node app.js', Windows CMD: 'set PORT=9090 node app.js'
+                        const server = app.listen(PORT, () => {
+                        console.log("Server started on port", server.address().port);
+                        });</code></pre>
+          package.json: <br> 
+          <pre><code>
+                {
+                "type": "module", // default is commonjs
+                    "scripts": {   // usually used for tests
+                    "start-dev": "cross-env PORT=8080 NODE_ENV=DEV node app.js", // dev mode script. npm run start-dev
+                    "start-prod": "cross-env PORT=8080 node app.js" // production mode script.  npm run start-prod
+                },
+                "dependencies": {
+                    "cross-env": "^10.1.0", // wrapper to unite one way of defining PORT. 
+                    "express": "^5.2.1"
+                }
+                }</code></pre>
+            import & export  ES Moduels math.js script: Export with more than one function.
+            <pre><code>
+                 export function add(a, b) {
+            return a + b;
+            }
+            export const pi = 3.14;
+            </code></pre>
+           
+            greet.js script: 
+            <pre><code>
+                 Defualt export with one function.
+            export default function greet() {
+            console.log("Hello!");
+            }
+            </code></pre>
+           
+            import & export  commonjs
+            math.js script: Export with more than one function.
+            <br>
+            <pre><code>
+            export function subtract(a, b) {
+            return a - b;
+            }
+            export const pi = 3.14;
+            module.exports = {
+                Pi,
+                subtract
+            };
+
+            </code></pre>
+         
+            app.js script: 
+            ES Moduels  <br>
+            The difference is that with more than one function it requires the name and {x, x, x} of the function imported.  
+            <pre><code>
+                import { add, pi } from "./math.js";
+                console.log(add(2, 3));
+                console.log(pi);
+
+            </code></pre>
+        
+            The difference is default makes the {} irrelevant & what you name the function as you know there only one function.
+            <pre><code>
+
+            import blabla from "./greet.js";
+            greet();
+            </code></pre>
+        
+             app.js script: 
+            commonjs <br>
+            this uses a old method. To require a module once. With no live conncection to the changes to the module when live. Thats why we use ES Moduels.
+            <pre><code>
+
+            const aboutme = require("./aboutme");
+
+            </code></pre>
+        </p>
+        <p>This is a<code>test</code> self-contained article.</p>
+      </article>
+      <h2>Example Express Server</h2>
+
+      <pre>
+        <code >
+        const express = require("express");
+        const app = express();
+
+        app.get("/", (req,res)=>{
+            res.send("Hello world");
+        });
+
+        app.listen(8080);
+        </code>
+     </pre>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

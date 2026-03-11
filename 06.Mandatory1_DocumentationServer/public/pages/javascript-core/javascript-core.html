@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/nodejs_logo.png" />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/pages/javascript-core/javascript-core.css" />
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/assets/css/default.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+
+    <title>index</title>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav id="navbar">
+        <a href="/"
+          ><img id="logo" src="/assets/images/nodejs_logo.png" alt="icon logo"
+        /></a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <article>
+        <h2>javascript-core</h2>
+
+        <p>
+          Functions & Callbacks – First-class functions, hoisting, arrow
+          functions Functions are first-class citizens which means they come
+          first compared to everything else, all functions are hoisted to be
+          instantiated in the beggining automatically no matter where/when in
+          the code it is instantiated. So other code can use it in whichever
+          sequence you want. One of the important ones is the arrow function
+          used in callback functions. Callback function is a function thats
+          referenced by another as an argument function
+          genericActionPerformer(number, action) or like this function
+          genericActionPerformer(number, () => {functionLogic}) <br />
+          <br />
+
+          Functional Array Methods – map, forEach, filter, reduce, side-effect
+          handling Functional coding, when looping through an array you usually
+          use: map .forEach .filter .reduce .sort .find .findIndex .indexOf,
+          ect. When reading use .forEach unless you need the data afterwerwards
+          then use .map as it has fewer side effects and actually returns a 1:1
+          new array, instead of having to create a new const for the looped
+          data. <br />
+          This requires a ternary statement "condition ? if true : if false" & a
+          spread operator "...objects" to avoid side effects if the elements in
+          the array are objects. Objects in a array are only refrenced to be
+          there from memory which means a if statement won't be enough. The side
+          effects here is that even if you make a new const with
+          newObjects.map((object) => ({if(condition) then return obejct} ) then
+          it will change the orginalObjects as well. you need to manually send
+          each object to the newObjects with newObjects.map((object) =>
+          {keyNumber: condition ? ifTrueThen : ifFalseThen, ...object }) )
+          <br />
+          <br />
+
+          Date Handling in JavaScript – UTC, local time, Date object methods
+          console.log(new Date()); // UTC Date + Time // .get?() for FullYear,
+          Month, Date, Day, Hours, Minutes, Seconds, Milliseconds
+          console.log(Date()); // Local Time. console.log(Date.now()); // Unix
+          Epoch Time (Miliseconds since Jan. 1st 1970) const date = new
+          Date().toLocaleDateString("en-uk",{ weekday:"long", // short, narrow
+          year:"numeric", //2-digit month:"numeric", // 2-digit, long, short,
+          narrow day:"numeric" // 2-digit })
+        </p>
+        <p>This is a<code>test</code> self-contained article.</p>
+      </article>
+      <h2>Example Express Server</h2>
+
+      <pre>
+        <code >
+        const express = require("express");
+        const app = express();
+
+        app.get("/", (req,res)=>{
+            res.send("Hello world");
+        });
+
+        app.listen(8080);
+        </code>
+     </pre>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>
