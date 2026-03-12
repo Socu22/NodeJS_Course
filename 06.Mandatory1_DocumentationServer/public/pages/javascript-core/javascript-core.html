@@ -1,47 +1,45 @@
-
       <article>
         <h2>javascript-core</h2>
 
         <p>
-          Functions & Callbacks – First-class functions, hoisting, arrow
-          functions Functions are first-class citizens which means they come
+          <h3>Functions & Callbacks – First-class functions, hoisting, arrow
+          functions </h3> <br> Functions are first-class citizens which means they come
           first compared to everything else, all functions are hoisted to be
           instantiated in the beggining automatically no matter where/when in
           the code it is instantiated. So other code can use it in whichever
           sequence you want. One of the important ones is the arrow function
           used in callback functions. Callback function is a function thats
           referenced by another as an argument function
-          genericActionPerformer(number, action) or like this function
-          genericActionPerformer(number, () => {functionLogic}) <br />
+          <code>genericActionPerformer(number, action)</code> or like this function
+          <code>genericActionPerformer(number, () => {functionLogic})</code> <br />
           <br />
 
-          Functional Array Methods – map, forEach, filter, reduce, side-effect
-          handling Functional coding, when looping through an array you usually
-          use: map .forEach .filter .reduce .sort .find .findIndex .indexOf,
-          ect. When reading use .forEach unless you need the data afterwerwards
-          then use .map as it has fewer side effects and actually returns a 1:1
-          new array, instead of having to create a new const for the looped
+          <h3>Functional Array Methods – map, forEach, filter, reduce, side-effect
+          handling</h3> <br> Functional coding, when looping through an array you usually
+          use: <code>.map</code> <code>.forEach</code> <code>.filter</code> <code>.reduce</code> <code>.sort</code> <code>.find</code> <code>.findIndex</code> <code>.indexOf</code>,
+          ect. When reading use <code>.forEach</code> unless you need the data afterwerwards
+          then use <code>.map</code> as it has fewer side effects and actually returns a 1:1
+          new array, instead of having to create a new <code>const</code> for the looped
           data. <br />
-          This requires a ternary statement "condition ? if true : if false" & a
-          spread operator "...objects" to avoid side effects if the elements in
+          This requires a ternary statement <code>"condition ? if true : if false"</code> & a
+          spread operator <code>"...objects"</code> to avoid side effects if the elements in
           the array are objects. Objects in a array are only refrenced to be
           there from memory which means a if statement won't be enough. The side
-          effects here is that even if you make a new const with
-          newObjects.map((object) => ({if(condition) then return obejct} ) then
-          it will change the orginalObjects as well. you need to manually send
-          each object to the newObjects with newObjects.map((object) =>
-          {keyNumber: condition ? ifTrueThen : ifFalseThen, ...object }) )
+          effects here is that even if you make a new <code>const</code> with
+          <code>newObjects.map((object) => ({if(condition) then return obejct} )</code> then
+          it will change the <code>orginalObjects</code> as well. you need to manually send
+          each object to the <code>newObjects</code> with <code>newObjects.map((object) =>
+          {keyNumber: condition ? ifTrueThen : ifFalseThen, ...object })</code>
           <br />
           <br />
 
-          Date Handling in JavaScript – UTC, local time, Date object methods
-          console.log(new Date()); // UTC Date + Time // .get?() for FullYear,
-          Month, Date, Day, Hours, Minutes, Seconds, Milliseconds
-          console.log(Date()); // Local Time. console.log(Date.now()); // Unix
-          Epoch Time (Miliseconds since Jan. 1st 1970) const date = new
+          <h3>Date Handling in JavaScript – UTC, local time, Date object methods</h3> <br>
+          <code>console.log(new Date());</code> // UTC Date + Time <code>.get?()</code> for <code>FullYear</code>,
+          <code>Month</code>, <code>Date</code>, <code>Day</code>, <code>Hours</code>, <code>Minutes</code>, <code>Seconds</code>, <code>Milliseconds</code>
+          <code>console.log(Date());</code> // Local Time. <code>console.log(Date.now());</code> // Unix
+          Epoch Time (Miliseconds since Jan. 1st 1970) <code>const date = new
           Date().toLocaleDateString("en-uk",{ weekday:"long", // short, narrow
           year:"numeric", //2-digit month:"numeric", // 2-digit, long, short,
-          narrow day:"numeric" // 2-digit })
+          narrow day:"numeric" // 2-digit })</code>
         </p>
               </article>
-       

@@ -333,3 +333,136 @@ modules, windows, process
 
 wrapper: nodemon, cross-env
 
+
+
+
+SSR (Server-Side Rendering) 
+This means that based on the client server model that the client receives a complete html, and from the servers side it generates the complete html before it sends it to client. 
+There is a difference between that compared to receiving an unrendered empty html which the client needs to render. This will limit who will be able to use the site as the client will need to use its own resources. 
+Keep in mind that the previous site used client side Rendering, now i will show an example of Server side Rendering in an ES module express site. 
+At the same time it will consider components which needs to be puy together in every html or most of them. 
+It follows the burger principle. With the main element being the middle and the two other parts being the header & footer of the html. 
+MainPackage --> public --> components --> component --> html
+
+header.html: -------------- top bun of the burger
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="/assets/images/icon.png"
+    />
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    
+    $$CSS_LINKS$$              // placeholder for stylesheet
+    <!-- External CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css"
+    />
+    <title>$$DOCUMENT_TITLE$$</title>  // placeholder for title 
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header>
+      <nav>
+        <a href="/">
+          <img
+            id="logo"
+            src="/assets/images/icon.png"
+            alt="icon logo"
+          />
+        </a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+page.html: -------------- meat of the burger
+      <article>
+        <h2>Article Title</h2>
+        <p>This is a self-contained article.</p>
+      </article>
+      <aside>
+        <p>Sidebar content, related info.</p>
+      </aside>
+footer.html: -------------- buttom bun of the burger
+    </main>
+    <!-- Footer -->
+    <footer>
+      <span id="copyright-year"></span>
+    </footer>
+    <!-- Scripts -->
+    <script src="/assets/js/footer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  </body>
+</html>
+
+templateEngine.js:  Using the previous html's we make a function which combines the two buns with the meat. At the same time also uses $$DOCUMENT_TITLE$$ & $$CSS_LINKS$$ as placeholders for title & stylesheet. Is a part of the  MainPackage --> public --> util --> script. 
+import fs from 'fs';
+export function constructPage(page, options = {}) { // options can use the key-value pairs inside its object.
+    const header = readPage('./public/components/header/header.html');
+    const footer = readPage('./public/components/footer/footer.html');
+
+    return header
+            .replace('$$DOCUMENT_TITLE$$', options.documentTitle || 'unnamed site')
+            .replace('$$CSS_LINKS$$', options.cssLinks || '')
+         + page 
+         + footer;
+}
+export function readPage(path) {// Synchronous file-reading to buffer to string. as it is html being read, it returns html. 
+    return fs.readFileSync(path).toString(); 
+}
+
+pagesUtil.js: used previous functions to get the html of page.html  Is a part of the  MainPackage --> public --> util --> script. 
+import { readPage, constructPage } from "./templatingEngine.js";
+/* page */
+const page = readPage('./public/pages/page/page.html');
+export const pagePage = constructPage(page, { // placeholder inputs
+    cssLinks: '<link rel="stylesheet" href="/pages/page/page.css">',
+    documentTitle: "Page | example"
+});
+
+pagesRouter.js: Instead of having clutter inside app.js in the form of routes then we make this which is a part of the  MainPackage --> routers --> pagesRouter.js We inport the pagePage which is the page which is server rendered ready for the client. The Router is equal to the current express backend.
+import { Router } from "express";
+import {
+  pagePage
+} from "../util/pagesUtil.js";
+const router = Router();
+router.get("/", (req, res) => {
+  res.send(nodejsBasicsPage); // the fully rendered html during server side Rendering.
+});
+export default router;
+
+The last step to declutter the app.js: 
+import express from "express";
+const app = express();
+app.use(express.static("public"));
+// app.use(express.json());
+// ===================== Pages ==============================
+import pagesRouter from "./routers/pagesRouter.js"; // imported
+app.use(pagesRouter); // you use the code like this. 
+// ===================== API ==============================
+import restAPIRouter from "./routers/restAPIRouter.js"; // looks similiar if you want api rest-endpoints away from app.js
+app.use(restAPIRouter);
+
+const PORT = process.env.PORT || 8080;
+const server = app.listen(PORT, () => {
+  console.log("Server started on port", server.address().port);
+});
+
+
+
+

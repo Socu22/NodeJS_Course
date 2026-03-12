@@ -6,6 +6,7 @@ import {
   nodejsProjectsPage,
   expressRestModulesPage,
   frontendSecurityToolsPage,
+  ssrcomponentsdeclutterPage,
   aboutPage,
   contactPage
 } from "../util/pagesUtil.js";
@@ -40,6 +41,11 @@ router.get("/express-rest-modules", (req, res) => {
 /* Frontend security + tools */
 router.get("/frontend-security-tools", (req, res) => {
   res.send(frontendSecurityToolsPage);
+});
+
+/* SSR + Components + Declutter */
+router.get("/ssr-components-declutter", (req, res) => {
+  res.send(ssrcomponentsdeclutterPage);
 });
 
 router.get("/about", (req, res) => {

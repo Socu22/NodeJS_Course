@@ -37,6 +37,13 @@ export const frontendSecurityToolsPage = constructPage(frontendSecurityTools, {
     documentTitle: "Node.js Documentation | Security & Tools"
 });
 
+/* SSR + Components + Declutter */
+const ssrcomponentsdeclutter = readPage('./public/pages/ssr-components-declutter/ssr-components-declutter.html');
+export const ssrcomponentsdeclutterPage = constructPage(ssrcomponentsdeclutter, {
+    cssLinks: '<link rel="stylesheet" href="/pages/ssr-components-declutter/ssr-components-declutter.css">',
+    documentTitle: "Node.js Documentation |SSR + Components + Declutter"
+});
+
 /* About */
 const about = readPage('./public/pages/about/about.html');
 export const aboutPage = constructPage(about, {

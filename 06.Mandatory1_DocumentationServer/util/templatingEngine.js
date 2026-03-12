@@ -6,7 +6,7 @@ export function constructPage(page, options = {}) {
     const footer = readPage('./public/components/footer/footer.html');
 
     return header
-            .replace('$$DOCUMENT_TITLE$$', options.documentTitle || 'unnamed site')
+            .replace('$$DOCUMENT_TITLE$$', options.documentTitle || 'site')
             .replace('$$CSS_LINKS$$', options.cssLinks || '')
          + page 
          + footer;

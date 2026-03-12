@@ -1,0 +1,132 @@
+      <article>
+        <h2>ssr-server-side-rendering</h2> <br>
+
+        <p>
+          <h3>SSR (Server-Side Rendering) – Pre-rendered HTML, client-server model</h3> <br>
+          This means that based on the client-server model, the client receives a complete <code>html</code>, and from the server's side it generates the complete <code>html</code> before sending it to the client. 
+          There is a difference between that compared to receiving an unrendered empty <code>html</code> which the client needs to render. This will limit who will be able to use the site as the client will need to use its own resources. 
+          Keep in mind that the previous site used client-side Rendering. Now we show an example of Server-Side Rendering in an <code>ES module</code> <code>express</code> site. 
+          It also considers components which need to be put together in every <code>html</code> or most of them. It follows the burger principle, with the <code>main</code> element being the middle and the two other parts being the <code>header</code> & <code>footer</code> of the <code>html</code>. 
+          MainPackage --&gt; public --&gt; components --&gt; component --&gt; <code>html</code> <br>
+
+          <h3>header.html – top bun of the burger</h3>
+          <pre><code>
+&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+    &lt;!-- Favicon --&gt;
+    &lt;link rel="icon" type="image/png" href="/assets/images/icon.png" /&gt;
+    &lt;!-- Local CSS --&gt;
+    &lt;link rel="stylesheet" href="/assets/css/main.css" /&gt;
+    
+    $$CSS_LINKS$$              // placeholder for stylesheet
+    &lt;!-- External CSS --&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" /&gt;
+    &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css" /&gt;
+    &lt;title&gt;$$DOCUMENT_TITLE$$&lt;/title&gt;  // placeholder for title 
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- Navigation --&gt;
+    &lt;header&gt;
+      &lt;nav&gt;
+        &lt;a href="/"&gt;
+          &lt;img id="logo" src="/assets/images/icon.png" alt="icon logo" /&gt;
+        &lt;/a&gt;
+        &lt;a href="/about"&gt;About&lt;/a&gt;
+      &lt;/nav&gt;
+    &lt;/header&gt;
+    &lt;!-- Main Content --&gt;
+    &lt;main&gt;
+          </code></pre>
+
+          <h3>page.html – meat of the burger</h3>
+          <pre><code>
+      &lt;article&gt;
+        &lt;h2&gt;Article Title&lt;/h2&gt;
+        &lt;p&gt;This is a self-contained article.&lt;/p&gt;
+      &lt;/article&gt;
+      &lt;aside&gt;
+        &lt;p&gt;Sidebar content, related info.&lt;/p&gt;
+      &lt;/aside&gt;
+          </code></pre>
+
+          <h3>footer.html – bottom bun of the burger</h3>
+          <pre><code>
+    &lt;/main&gt;
+    &lt;!-- Footer --&gt;
+    &lt;footer&gt;
+      &lt;span id="copyright-year"&gt;&lt;/span&gt;
+    &lt;/footer&gt;
+    &lt;!-- Scripts --&gt;
+    &lt;script src="/assets/js/footer.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+          </code></pre>
+
+          <h3>templateEngine.js – Combine header, page, footer with placeholders</h3> <br>
+          Using the previous html's we make a function which combines the two buns with the meat. At the same time also uses <code>$$DOCUMENT_TITLE$$ & $$CSS_LINKS$$ </code> as placeholders for title & stylesheet. <br> It is a part of the  MainPackage --> public --> util --> script. 
+
+          <pre><code>
+import fs from 'fs';
+export function constructPage(page, options = {}) { // options can use the key-value pairs inside its object.
+    const header = readPage('./public/components/header/header.html');
+    const footer = readPage('./public/components/footer/footer.html');
+
+    return header
+            .replace('$$DOCUMENT_TITLE$$', options.documentTitle || 'unnamed site')
+            .replace('$$CSS_LINKS$$', options.cssLinks || '')
+         + page 
+         + footer;
+}
+export function readPage(path) {// Synchronous file-reading to buffer to string. as it is html being read, it returns html. 
+    return fs.readFileSync(path).toString(); 
+}
+          </code></pre>
+
+          <h3>pagesUtil.js – Load and render page.html</h3>
+          Used the previous functions to get the html of page.html <br> Is a part of the  MainPackage --> public --> util --> script. 
+          <pre><code>
+import { readPage, constructPage } from "./templatingEngine.js";
+/* page */
+const page = readPage('./public/pages/page/page.html');
+export const pagePage = constructPage(page, { // placeholder inputs
+    cssLinks: '&lt;link rel="stylesheet" href="/pages/page/page.css"&gt;',
+    documentTitle: "Page | example"
+});
+          </code></pre>
+
+          <h3>pagesRouter.js – Server-side rendered routes</h3>
+          Instead of having clutter inside app.js in the form of routes then we make this which is a part of the <br> MainPackage --> routers --> pagesRouter.js <br> We inport the pagePage which is the page which is server rendered ready for the client. The Router is equal to the current express backend.
+          <pre><code>
+import { Router } from "express";
+import { pagePage } from "../util/pagesUtil.js";
+const router = Router();
+router.get("/", (req, res) => {
+  res.send(nodejsBasicsPage); // the fully rendered html during server side Rendering.
+});
+export default router;
+          </code></pre>
+
+          <h3>app.js – Clean main server file</h3>
+          <pre><code>
+import express from "express";
+const app = express();
+app.use(express.static("public"));
+// app.use(express.json());
+// ===================== Pages ==============================
+import pagesRouter from "./routers/pagesRouter.js"; // imported
+app.use(pagesRouter); // you use the code like this. 
+// ===================== API ==============================
+import restAPIRouter from "./routers/restAPIRouter.js"; // looks similiar if you want api rest-endpoints away from app.js
+app.use(restAPIRouter);
+
+const PORT = process.env.PORT || 8080;
+const server = app.listen(PORT, () => {
+  console.log("Server started on port", server.address().port);
+});
+          </code></pre>
+        </p>
+      </article>
