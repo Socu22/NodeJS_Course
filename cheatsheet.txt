@@ -6,3 +6,13 @@ npm install cross-env
 
 
 npm run scriptname
+
+
+npm create vite@latest // a build tool serversite validationed
+// svelte clientsite web framework. COMPLILE TIME
+no to npm
+
+
+npm run dev
+npm run build // dist folder 
+npm run preview // closest to deployment with no dev tools 

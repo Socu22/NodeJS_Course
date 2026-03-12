@@ -1,4 +1,4 @@
-import vm from "vm";
+import vm from 'vm';
 
 /*  WARNING!!!
     This is a teaching demo. It is NOT ready for production.
@@ -15,30 +15,15 @@ import vm from "vm";
 const sessions = new Map();
 
 const BLACKLIST = [
-  "process",
-  "require",
-  "import",
-  "global",
-  "globalThis",
-  "this",
-  "__proto__",
-  "constructor",
-  "prototype",
-  "eval",
-  "Function",
-  "Reflect",
-  "Proxy",
-  "module",
-  "exports",
-  "Buffer",
-  "fetch",
-  "setTimeout",
-  "setInterval",
-  "setImmediate",
+  'process', 'require', 'import', 'global', 'globalThis', 'this',
+  '__proto__', 'constructor', 'prototype',
+  'eval', 'Function', 'Reflect', 'Proxy',
+  'module', 'exports', 'Buffer', 'fetch',
+  'setTimeout', 'setInterval', 'setImmediate'
 ];
 
 function containsBlacklistedTerm(code) {
-  const found = BLACKLIST.find((term) => code.includes(term));
+  const found = BLACKLIST.find(term => code.includes(term));
   return found || null;
 }
 
@@ -51,27 +36,23 @@ export function getOrCreateSandboxContext(sessionId) {
 
 function createSandboxContext(sessionId) {
   const sandbox = {
-    output: "",
-    error: "",
+    output: '',
+    error: '',
     result: null,
     Math,
     Date,
     JSON,
     parseInt,
-    parseFloat,
+    parseFloat
   };
 
   sandbox.console = {
-    log: (...args) => {
-      sandbox.output += args.map(String).join(" ") + "\n";
-    },
-    error: (...args) => {
-      sandbox.error += args.map(String).join(" ") + "\n";
-    },
+    log: (...args) => { sandbox.output += args.map(String).join(' ') + '\n'; },
+    error: (...args) => { sandbox.error += args.map(String).join(' ') + '\n'; }
   };
 
   return {
-    context: vm.createContext(sandbox),
+    context: vm.createContext(sandbox)
   };
 }
 
@@ -80,31 +61,33 @@ export function executeCodeInSandbox(sandbox, code) {
   if (blocked) {
     return {
       success: false,
-      error: `'${blocked}' is not allowed`,
+      error: `'${blocked}' is not allowed`
     };
   }
 
-  sandbox.context.output = "";
-  sandbox.context.error = "";
+  sandbox.context.output = '';
+  sandbox.context.error = '';
 
   try {
     const script = new vm.Script(code);
     const result = script.runInContext(sandbox.context, {
       timeout: 2000,
-      displayErrors: false,
+      displayErrors: false
     });
-
+    
     sandbox.context.result = result;
 
     return {
-      success: true,
-      output: sandbox.context.output.trim(),
-      result: result === undefined ? "undefined" : String(result),
+        success: true,
+        output: sandbox.context.output.trim(),
+        result: result === undefined ? 'undefined' : String(result)
     };
+
   } catch (error) {
     return {
-      success: false,
-      error: error.message,
+        success: false,
+        error: error.message
     };
+
   }
 }

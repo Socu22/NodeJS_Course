@@ -8,56 +8,24 @@ app.use(express.json());
 
 // ===================== Pages ==============================
 
-app.get("/", (req, res) => {
-  res.sendFile(path.resolve("public/pages/frontend/frontend.html"));
-});
+// INSERTT TEMPLEATES INTO COMPONEMTNS
+// SEO vs ssr XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-app.get("/about", (req, res) => {
-  res.sendFile(path.resolve("public/pages/about/about.html"));
-});
+import pagesRouter from "./routers/pagesRouter.js";
+
+app.use(pagesRouter);
 
 // ===================== API ==============================
-import {
-  getOrCreateSandboxContext,
-  executeCodeInSandbox,
-} from "./util/replUtil.js";
 
-app.post("/api/repl", (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({ errorMessage: "Missing a JSON body" });
-  }
-  //let replCode = req.body?.replCode;
+import replRouter from "./routers/replRouter.js"; // imports are not locked to only be at the top of the .js
+import { log } from "console";
 
-  const { replCode, sandboxId } = req.body;
-
-  if (!replCode) {
-    return res
-      .status(400)
-      .send({ errorMessage: "Missing the key replCode in the JSON body" });
-  }
-
-  const sandbox = getOrCreateSandboxContext(sandboxId);
-
-  const { error, success, output, result } = executeCodeInSandbox(
-    sandbox,
-    replCode,
-  );
-
-  if (error) {
-    return res
-      .status(500)
-      .send({
-        data: { error },
-        errorMessage: "Error executing the provided code",
-      });
-  }
-
-  res.send({ data: { success, output, result } });
-});
+app.use(replRouter); // when using
 
 //console.log(process.env.PORT); // PORT=9090 node app.js  ? $env:PORT=9090 node app.js? find this
 // use cross-env instead as a wrapper. as port assgiemnt works different in different terminals
 
+// short-circuit syntax
 const PORT = process.env.PORT || 8080; // This instead of config inline.
 const server = app.listen(PORT, () => {
   // app.listen send something back at once to server
