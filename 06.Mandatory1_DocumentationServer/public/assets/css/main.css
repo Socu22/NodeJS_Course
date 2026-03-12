@@ -3,6 +3,22 @@
   min-height: 8rem;
 }
 
+#navbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#navbar a {
+  text-decoration: none;
+  font-weight: bold;
+    transition: 0.2s;
+}
+#navbar a:hover {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
 code.inline {
   background: light-dark(rgb(51, 67, 87), #c6c2c2);
 }
