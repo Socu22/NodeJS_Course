@@ -1,0 +1,14 @@
+
+npm create vite@latest // a build tool serversite validationed
+// svelte clientsite web framework. COMPLILE TIME
+no to npm
+npm isntall
+
+npm run dev // auto reload for dev. dev live
+npm run build // dist folder for use. static files
+npm run preview // closest to deployment with no dev tools. static files to live server
+
+
+This is made using the DOm tree elements which is why we make things not in plual but singulair. inspired by Class in java when classes always are C and not a c at the beggining
+Do not use things which mess with the DOM, this is already being optimized by svelte. Svelte is known for it compiled time which also prepeares for when it has to run at runtime making it faster. The prepearation happend in compiletime  
+Component: **Thing**Folder --> **Thing** Object

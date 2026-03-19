@@ -11,8 +11,9 @@ npm run scriptname
 npm create vite@latest // a build tool serversite validationed
 // svelte clientsite web framework. COMPLILE TIME
 no to npm
+npm isntall
 
+npm run dev // auto reload for dev. dev live
+npm run build // dist folder for use. static files
+npm run preview // closest to deployment with no dev tools. static files to live server
 
-npm run dev
-npm run build // dist folder 
-npm run preview // closest to deployment with no dev tools 
