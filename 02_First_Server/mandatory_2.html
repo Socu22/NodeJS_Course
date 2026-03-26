@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auth Card</title>
+
+<!-- Pico.css CDN -->
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+<style>
+  body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+
+  dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  dialog.show {
+    opacity: 1;
+  }
+
+  dialog::backdrop {
+    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.35);
+  }
+
+  /* Flip Card */
+  .perspective { perspective: 1200px; }
+
+  .card {
+    width: 22rem;       /* responsive width */
+    height: 35rem;      /* responsive height */
+    max-width: 90vw;    /* ensure it fits smaller screens */
+    max-height: 90vh;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.7s ease;
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .side {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--card-background-color);
+    box-shadow: 0 1.25rem 2.5rem rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    opacity: 1;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+    visibility: visible;
+  }
+
+  .back { transform: rotateY(180deg); }
+
+  /* Hidden side with fade */
+  .hidden-side {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .center-text {
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .switch-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.875rem;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<button id="openAuthBtn">Open Login / Signup</button>
+
+<dialog id="authDialog">
+  <form method="dialog">
+    <button class="close-btn">✕</button>
+  </form>
+
+  <div class="perspective">
+    <div id="card" class="card">
+
+      <!-- LOGIN -->
+      <div class="side">
+        <h3>Login</h3>
+
+        <form>
+          <label>
+            Email
+            <input type="email" placeholder="you@example.com">
+          </label>
+
+          <label>
+            Password
+            <input type="password" placeholder="Password">
+          </label>
+
+          <button type="button">Sign In</button>
+        </form>
+
+        <p class="center-text">
+          No account?
+          <button type="button" class="switch-btn" onclick="flipCard()">
+            Sign up
+          </button>
+        </p>
+      </div>
+
+      <!-- SIGNUP -->
+      <div class="side back hidden-side">
+        <h3>Create Account</h3>
+
+        <form>
+          <label>
+            Full Name
+            <input type="text" placeholder="John Doe">
+          </label>
+
+          <label>
+            Email
+            <input type="email" placeholder="you@example.com">
+          </label>
+
+          <label>
+            Password
+            <input type="password" placeholder="Password">
+          </label>
+
+          <button type="button">Create Account</button>
+        </form>
+
+        <p class="center-text">
+          Already have an account?
+          <button type="button" class="switch-btn" onclick="flipCard()">
+            Login
+          </button>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const card = document.getElementById('card');
+  const sides = card.querySelectorAll('.side');
+  const authDialog = document.getElementById('authDialog');
+  const openBtn = document.getElementById('openAuthBtn');
+
+  function flipCard() {
+    card.classList.toggle('flipped');
+    sides.forEach(side => side.classList.toggle('hidden-side'));
+  }
+
+  // Open dialog with fade
+  openBtn.addEventListener('click', () => {
+    authDialog.showModal();
+    // small timeout to trigger CSS transition
+    setTimeout(() => authDialog.classList.add('show'), 10);
+  });
+
+  // Close dialog and fade out
+  authDialog.addEventListener('close', () => {
+    authDialog.classList.remove('show');
+  });
+</script>
+
+</body>
+</html>

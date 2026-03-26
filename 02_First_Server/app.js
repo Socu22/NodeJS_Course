@@ -14,6 +14,9 @@ app.use(express.json()); // if a json body is undefined you have to use this bod
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html"); // Path must be absolute
 });
+app.get("/m2", (req, res) => {
+  res.sendFile(__dirname + "/mandatory_2.html"); // Path must be absolute
+});
 app.get("/xss", (req, res) => {
   res.sendFile(__dirname + "/xss.html"); // Path must be absolute
 });
