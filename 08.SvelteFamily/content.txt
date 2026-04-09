@@ -3,6 +3,7 @@ npm create vite@latest // a build tool serversite validationed
 // svelte clientsite web framework. COMPLILE TIME
 no to npm
 npm install
+npm upgrade 
  npm init -y //comjs
 
 npm run dev // auto reload for dev. dev live

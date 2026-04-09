@@ -12,5 +12,11 @@ router.get("/about", (req, res) => {
   res.send(aboutPage);
 });
 
+router.post('/api/about', (req, res) => { // this is for tesing the form in about.html 
+    console.log(req.body);
+    res.send({ data: req.body }); // 
+});
+
+
 // assignment set up a router here and include it in app.js
 export default router;

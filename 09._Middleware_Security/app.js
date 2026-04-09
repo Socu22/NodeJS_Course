@@ -1,3 +1,9 @@
+import dotenv from 'dotenv' // or 'dotenv/config' if not needed specific configuation or import "dotenv/config";
+
+dotenv.config(); // implement always as early as posible 
+console.log(process.env.SESSION_SECRET);
+
+
 import express from 'express';
 
 const app = express();
@@ -35,7 +41,7 @@ app.use(helmet());// contains (req res next)
 import session from 'express-session';
 
 app.use(session({
-    secret: 'keyboard cat', // todo make sure not to push this
+    secret: process.env.SESSION_SECRET, // > require("crypto").randomBytes(47).toString("hex") for SESSION_SECRET
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false }

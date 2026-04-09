@@ -14,5 +14,5 @@ no to npm
 
 
 npm run dev
-npm run build // dist folder 
+npm run build // dist folder for same origin  
 npm run preview // closest to deployment with no dev tools 

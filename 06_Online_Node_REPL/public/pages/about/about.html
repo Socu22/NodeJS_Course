@@ -1,0 +1,16 @@
+<h1>about</h1>
+<p>THis is for making an form on the client side in express websites. we use x-www-form-urlencoded format, at the same time you need in app.js to import an express.urlencoded({ extended: true })</p>
+<form action="/api/about" method="POST"> 
+    <fieldset>
+        <label>Name</label>
+        <input name="name" placeholder="Name..." value="Lucas">
+
+        <label>Email</label>
+        <input name="email" type="email" placeholder="Email..." value="test@test.com">
+
+        <label>Message</label>
+        <textarea name="message" cols="80" rows="8"></textarea>
+
+        <button>Send Message</button>
+    </fieldset>
+</form>
