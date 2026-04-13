@@ -5,6 +5,7 @@
     "prettier-eslint": "^16.1.2"
   },
   "dependencies": {
+    "chokidar": "^5.0.0",
     "express": "^5.2.1"
   }
 }
