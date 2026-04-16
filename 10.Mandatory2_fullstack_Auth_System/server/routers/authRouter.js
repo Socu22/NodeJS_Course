@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import db from '../database/db.js';
+import { sendSignupEmail } from '../utils/mail.js';
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.post('/auth/signup', async (req, res) => {
                 if (error) {
                     return res.status(400).send({ errorMessage: "User already exists" });
                 }
-
+                sendSignupEmail(email,username)
                 res.send({ message: "Signup successful" });
             }
         );

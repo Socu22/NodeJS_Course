@@ -1,8 +1,10 @@
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { BASE_URL } from "../store/urlStore";
+
+
 
 async function request(endpoint, options = {}) {
     try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
+        const response = await fetch(`${BASE_URL}${endpoint }`, {
             credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
