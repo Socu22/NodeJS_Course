@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "database-create": "node ./database/db.js --delete",
+    "database-update": "node ./database/db.js"
   },
   "keywords": [],
   "author": "",

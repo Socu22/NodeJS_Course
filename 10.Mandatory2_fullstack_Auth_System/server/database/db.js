@@ -1,5 +1,7 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import bcrypt from "bcrypt"
+
 
 // Open the database connection
 const db = await open({
@@ -8,8 +10,11 @@ const db = await open({
 });
 
 // Check for --delete flag
-const deleteMode = true
+const deleteMode = process.argv.includes("--delete")
 
+function bcryptPassword (password) {
+  return bcrypt.hash(password, 12);
+}
 async function initializeDatabase() {
   try {
     // Drop users table if --delete flag is present
@@ -24,8 +29,10 @@ async function initializeDatabase() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
         password TEXT,
-        email TEXT,
-        role TEXT DEFAULT 'user'
+        email TEXT UNIQUE,
+        role TEXT DEFAULT 'user', 
+        reset_token TEXT,
+        reset_token_expiry INTEGER
       );
     `);
     console.log('Users table created or already exists.');
@@ -35,18 +42,14 @@ async function initializeDatabase() {
       // Insert sample users with hashed passwords
       await db.run(`
         INSERT INTO users (username, password, email, role)
-        VALUES ('admin', '$2b$10$somehashedpassword', 'admin@example.com', 'admin');
-      `);
+        VALUES ('admin', ?, 'admin@example.com', 'admin');
+      `,[await bcryptPassword("admin")]);
+       await db.run(`
+        INSERT INTO users (username, password, email, role)
+        VALUES ('demo', ?, 'demo@example.com', 'demo');
+      `,[await bcryptPassword("demo")]);
 
-      await db.run(`
-        INSERT INTO users (username, password, email)
-        VALUES ('john_doe', '$2b$10$anotherhashedpassword', 'john@example.com');
-      `);
-
-      await db.run(`
-        INSERT INTO users (username, password, email)
-        VALUES ('jane_doe', '$2b$10$yethashedpassword', 'jane@example.com');
-      `);
+      
 
       console.log('Users table seeded with sample data.');
     }

@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import db from '../database/db.js';
 import { sendSignupEmail } from '../utils/mail.js';
+import { log } from 'console';
 
 const router = Router();
 
 // AUTH
 const isAuthenticated = (req, res, next) => {
-    if (!req.session.user) {
+    if (!req.session?.user) {
         return res.status(401).send({ errorMessage: "Not authenticated" });
     }
     next();
@@ -15,14 +17,24 @@ const isAuthenticated = (req, res, next) => {
 
 // ROLE
 const authorizeRoles = (...roles) => (req, res, next) => {
-    if (!roles.includes(req.session.user.role)) {
+    const user = req.session?.user;
+
+    if (!user) {
+        return res.status(401).send({ errorMessage: "Not authenticated" });
+    }
+
+    if (!roles.includes(user.role)) {
         return res.status(403).send({ errorMessage: "Forbidden" });
     }
+
     next();
 };
 
 
-// SIGNUP
+
+// ==========================
+// PUBLIC SIGNUP
+// ==========================
 router.post('/auth/signup', async (req, res) => {
     try {
         const { username, password, email, role } = req.body;
@@ -33,18 +45,9 @@ router.post('/auth/signup', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        let tmpRole = role || 'user';
-
-        // Only allow admin creation if requester is admin
-        if (req.session?.user?.role === 'admin' && role === 'admin') {
-            tmpRole = 'admin';
-        } else {
-            tmpRole = 'user'; // force fallback
-        }
-
         await db.run(
             "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)",
-            [username, hashedPassword, email, tmpRole]
+            [username, hashedPassword, email, role ||'user']
         );
 
         await sendSignupEmail(email, username);
@@ -62,7 +65,52 @@ router.post('/auth/signup', async (req, res) => {
 });
 
 
+
+// ==========================
+// ADMIN: CREATE USER WITH ROLE
+// ==========================
+router.post(
+    '/admin/create-user',
+    isAuthenticated,
+    authorizeRoles('admin'),
+    async (req, res) => {
+        try {
+            const { username, password, email, role } = req.body;
+
+            if (!username || !password || !email) {
+                return res.status(400).send({ errorMessage: "Missing fields" });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 12);
+
+        
+            const finalRole = role ? role : 'user';
+
+            await db.run(
+                "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)",
+                [username, hashedPassword, email, finalRole]
+            );
+
+            await sendSignupEmail(email, username);
+
+            res.send({ message: `User created with role: ${finalRole}` });
+
+        } catch (error) {
+            if (error.message.includes("UNIQUE")) {
+                return res.status(400).send({ errorMessage: "User already exists" });
+            }
+
+            console.error(error);
+            res.status(500).send({ errorMessage: "Server error" });
+        }
+    }
+);
+
+
+
+// ==========================
 // LOGIN
+// ==========================
 router.post('/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -99,22 +147,130 @@ router.post('/auth/login', async (req, res) => {
     }
 });
 
+// ==========================
+// FORGOT PASSWORD & RESET PASSWORD
+// ==========================
+const hashToken = (token) => {
+    return crypto.createHash('sha256').update(token).digest('hex');
+};
+router.post('/auth/forgotpassword', async (req, res) => {
+    try {
+        const { email } = req.body;
 
+        if (!email) {
+            return res.status(400).send({ errorMessage: "Email required" });
+        }
+
+        const user = await db.get(
+            "SELECT * FROM users WHERE email = ?",
+            [email]
+        );
+
+        // Always return same response (security)
+        if (!user) {
+            return res.send({ message: "If email exists, reset link sent" });
+        }
+
+        // Generate secure token
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = hashToken(rawToken);
+
+        const expiry = Date.now() + 1000 * 60 * 2; // 2 min
+
+        await db.run(
+            `UPDATE users 
+             SET reset_token = ?, reset_token_expiry = ? 
+             WHERE id = ?`,
+            [hashedToken, expiry, user.id]
+        );
+
+        await sendSignupEmail(
+            email,
+            `Token: ${rawToken}`
+        );
+
+        res.send({ message: "If email exists, token has been sent" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ errorMessage: "Server error" });
+    }
+});
+
+router.post('/auth/resetpassword', async (req, res) => {
+    try {
+        const { newPassword, token } = req.body;
+        console.log(req.body);
+        
+
+        if (!token || !newPassword) {
+            return res.status(400).send({ errorMessage: "Missing fields" });
+        }
+
+        const hashedToken = hashToken(token);
+
+        const user = await db.get(
+            "SELECT * FROM users WHERE reset_token = ?",
+            [hashedToken]
+        );
+
+        if (!user) {
+            return res.status(400).send({ errorMessage: "Invalid token" });
+        }
+
+        if (user.reset_token_expiry < Date.now()) {
+            return res.status(400).send({ errorMessage: "Token expired" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        console.log(newPassword);
+        
+
+        await db.run(
+            `UPDATE users 
+             SET password = ?, reset_token = NULL, reset_token_expiry = NULL
+             WHERE id = ?`,
+            [hashedPassword, user.id]
+        );
+
+        res.send({ message: "Password updated successfully" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ errorMessage: "Server error" });
+    }
+});
+
+
+
+// ==========================
 // LOGOUT
+// ==========================
 router.post('/auth/logout', (req, res) => {
     req.session.destroy(() => res.send({ message: "Logged out" }));
 });
 
 
+
+// ==========================
 // CURRENT USER
+// ==========================
 router.get('/users/me', isAuthenticated, (req, res) => {
     res.send({ data: req.session.user });
 });
 
 
-// ADMIN ONLY
-router.get('/admin', isAuthenticated, authorizeRoles('admin'), (req, res) => {
-    res.send({ message: "Admin access granted" });
-});
+
+// ==========================
+// ADMIN TEST
+// ==========================
+router.get(
+    '/admin',
+    isAuthenticated,
+    authorizeRoles('admin'),
+    (req, res) => {
+        res.send({ message: "Admin access granted" });
+    }
+);
 
 export default router;
