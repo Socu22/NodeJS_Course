@@ -33,64 +33,70 @@ router.post('/auth/signup', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        let tmpRole = role||'user'; // default
+        let tmpRole = role || 'user';
 
-        // ONLY allow admin role if requester is logged in AND admin
-        if (
-            req.session?.user?.role === 'admin' &&
-            role === 'admin'
-        ) {
+        // Only allow admin creation if requester is admin
+        if (req.session?.user?.role === 'admin' && role === 'admin') {
             tmpRole = 'admin';
+        } else {
+            tmpRole = 'user'; // force fallback
         }
 
-        db.run(
+        await db.run(
             "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)",
-            [username, hashedPassword, email, tmpRole],
-            (error) => {
-                if (error) {
-                    return res.status(400).send({ errorMessage: "User already exists" });
-                }
-                sendSignupEmail(email,username)
-                res.send({ message: "Signup successful" });
-            }
+            [username, hashedPassword, email, tmpRole]
         );
 
-    } catch (err) {
+        await sendSignupEmail(email, username);
+
+        res.send({ message: "Signup successful" });
+
+    } catch (error) {
+        if (error.message.includes("UNIQUE")) {
+            return res.status(400).send({ errorMessage: "User already exists" });
+        }
+
+        console.error(error);
         res.status(500).send({ errorMessage: "Server error" });
     }
 });
 
+
 // LOGIN
-router.post('/auth/login', (req, res) => {
-    const { username, password } = req.body;
+router.post('/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
-    db.get(
-        "SELECT * FROM users WHERE username = ?",
-        [username],
-        async (error, user) => {
+        const user = await db.get(
+            "SELECT * FROM users WHERE username = ?",
+            [username]
+        );
 
-            if (error || !user) {
-                return res.status(400).send({ errorMessage: "Invalid credentials" });
-            }
-
-            const valid = await bcrypt.compare(password, user.password);
-
-            if (!valid) {
-                return res.status(400).send({ errorMessage: "Invalid credentials" });
-            }
-
-            req.session.user = {
-                id: user.id,
-                username: user.username,
-                role: user.role
-            };
-
-            res.send({
-                message: "Login successful",
-                data: req.session.user
-            });
+        if (!user) {
+            return res.status(400).send({ errorMessage: "Invalid credentials" });
         }
-    );
+
+        const valid = await bcrypt.compare(password, user.password);
+
+        if (!valid) {
+            return res.status(400).send({ errorMessage: "Invalid credentials" });
+        }
+
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+
+        res.send({
+            message: "Login successful",
+            data: req.session.user
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ errorMessage: "Server error" });
+    }
 });
 
 
