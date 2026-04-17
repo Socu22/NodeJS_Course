@@ -6,6 +6,25 @@ import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mai
 
 const router = Router();
 
+/*
+This API follows a hybrid architecture:
+ *
+ * 1. AUTHENTICATION (/auth/*)
+ *    - Handles login, signup, logout
+ *    - Handles password recovery flow
+ *    - Establishes and destroys session state
+ *
+ * 2. USER RESOURCE (/users/*)
+ *    - Represents user data as a RESTful resource
+ *    - "me" endpoints operate on the currently authenticated user
+ *    - No user ID is trusted from the client for self-actions
+ *
+ * 3. ADMIN OPERATIONS (/users, /admin/*)
+ *    - Restricted to users with role: "admin"
+ *    - Allows creation of users with explicit roles
+ *    - Enforced via authorizeRoles middleware
+*/
+
 // AUTH
 const isAuthenticated = (req, res, next) => {
     if (!req.session?.user) {
