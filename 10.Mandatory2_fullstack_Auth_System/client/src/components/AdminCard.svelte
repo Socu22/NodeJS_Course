@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
-  import { user, activeForm } from '../store/userStore.js';
+  import { user, activeFormAdmin } from '../store/userStore.js';
 
   let email = '';
   let username = '';
@@ -13,7 +13,7 @@
 
   // SESSION CHECK
   onMount(async () => {
-    $activeForm = 'signup'
+    $activeFormAdmin = 'signup'
     
   });
 
@@ -32,7 +32,7 @@
       });
 
       if (res.ok) {
-        $activeForm = 'login';
+        $activeFormAdmin = 'login';
         username = email = password = role = '';
         toastr.success('Auth Signup successful!');
       } else {
@@ -53,7 +53,7 @@
 <div class="auth-container">
 
 
-{#if $activeForm === 'signup' && user && $user?.role === 'admin'}
+{#if $activeFormAdmin === 'signup' && user && $user?.role === 'admin'}
     <!-- ADMIN SIGNUP -->
     <div class="form-section">
       <h3>Admin Sign Up</h3>

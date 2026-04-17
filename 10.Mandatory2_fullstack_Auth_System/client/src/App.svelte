@@ -2,23 +2,24 @@
   import { Router, Link, Route } from 'svelte-routing';
   import AuthCard from './components/AuthCard.svelte';
   import AdminCard from './components/AdminCard.svelte';
+  import {user} from './store/userStore.js'
 </script>
 
 <Router>
-  <nav>
-    <Link to="/">Change</Link>
-    <Link to="/">Change</Link>
-    <Link to="/admin">Change</Link>
-    <Link to="/auth">auth</Link>
-
-  </nav>
-  <div>
-    <Route path="/auth"><AuthCard /></Route>
-    <Route path="/admin"><AdminCard /></Route>
-
-
-  </div>
+<nav>
+  <Link to="/">Change</Link>
+  <Link to="/">Change</Link>
+  {#if $user && $user?.role === 'admin'}
+      <Link to="/admin">admin</Link>
+  {/if}
+  <Link to="/auth">auth</Link>
+</nav>
+<div>
+  <Route path="/auth"><AuthCard /></Route>
+  <Route path="/admin"><AdminCard /></Route>
+</div>
 </Router>
+
 
 <style>
   /* Nav styling */

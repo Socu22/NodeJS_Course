@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchGet, fetchPost } from '../util/fetchUtil.js';
+  import { fetchGet, fetchPost,fetchPut } from '../util/fetchUtil.js';
   import toastr from 'toastr';
-  import { user, activeForm } from '../store/userStore.js';
+  import { user, activeFormAuth } from '../store/userStore.js';
 
   let email = '';
   let username = '';
@@ -18,7 +18,7 @@
     const res = await fetchGet('/users/me');
     if (res.ok) {
       $user = res.data.data;
-      $activeForm = 'user';
+      $activeFormAuth = 'user';
     }
   });
 
@@ -31,7 +31,7 @@
 
       if (res.ok) {
         $user = res.data.data;
-        $activeForm = 'user';
+        $activeFormAuth = 'user';
         username = '';
         password = '';
         toastr.success('Login successful!');
@@ -41,6 +41,34 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  // UPDATE USER
+  async function handleUpdateUser() {
+    isLoading = true;
+
+    try {
+      const res = await fetchPut("/users/me", {
+        username,
+        email
+      });
+
+      if (res.ok) {
+        $user = res.data.data;
+        $activeFormAuth = 'user';
+
+        username = email = ''
+        toastr.success('Update user successful!');
+      } else {
+        toastr.error(res.data.errorMessage || 'Update user failed');
+      }
+    }catch(error){
+      console.log(error);
+      
+    } finally {
+      isLoading = false;
+    }
+    
   }
 
   // SIGNUP
@@ -56,7 +84,7 @@
       });
 
       if (res.ok) {
-        $activeForm = 'login';
+        $activeFormAuth = 'login';
         username = email = password = '';
         role = 'user';
         toastr.success('Signup successful!');
@@ -79,7 +107,7 @@
       const res = await fetchPost('/auth/forgotpassword', { email });
 
       if (res.ok) {
-        $activeForm = 'resetpassword';
+        $activeFormAuth = 'resetpassword';
         email =''
         toastr.success('Reset email sent!');
       } else {
@@ -101,7 +129,7 @@
       });
 
       if (res.ok) {
-        $activeForm = 'login';
+        $activeFormAuth = 'login';
         token = newPassword = '';
         toastr.success('Password changed!');
       } else {
@@ -118,29 +146,48 @@
 
     if (res.ok) {
       $user = null;
-      $activeForm = 'login';
+      $activeFormAuth = 'login';
     }
   }
 
-  const showLogin = () => ($activeForm = 'login');
-  const showSignup = () => ($activeForm = 'signup');
-  const showForgotPassword = () => ($activeForm = 'forgotpassword');
+  const showLogin = () => ($activeFormAuth = 'login');
+  const showSignup = () => ($activeFormAuth = 'signup');
+  const showForgotPassword = () => ($activeFormAuth = 'forgotpassword');
 
 </script>
 
 <div class="auth-container">
 
-  {#if $activeForm === 'user'}
+  {#if $activeFormAuth === 'user'}
 
     <!-- LOGGED IN VIEW -->
+  <div class="form-section">
     <div class="user-section">
-      <p>Welcome, <strong>{$user.username}</strong>!</p>
+      <p>Welcome, <strong>{$user.username}, {$user.role}</strong>!</p>
       <button class="text-button" on:click={handleLogout}>
         Logout
-      </button>
+      </button>      
+    </div>
+      <h3>Update</h3>
+      <form on:submit|preventDefault={handleUpdateUser}>
+        <div class="input-group">
+          <label>Username</label>
+          <input placeholder={$user.username} bind:value={username} required />
+        </div>
+
+        <div class="input-group">
+          <label>Email</label>
+          <input placeholder={$user.email} type="email" bind:value={email} required />
+        </div>
+        
+        <button class="submit-button" disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Sign Up'}
+        </button>
+      </form>
+
     </div>
 
-  {:else if $activeForm === 'login'}
+  {:else if $activeFormAuth === 'login'}
 
     <!-- LOGIN -->
     <div class="form-section">
@@ -174,7 +221,7 @@
       </p>
     </div>
 
-  {:else if $activeForm === 'signup'}
+  {:else if $activeFormAuth === 'signup'}
 
     <!-- SIGNUP -->
     <div class="form-section">
@@ -196,14 +243,6 @@
           <input type="password" bind:value={password} required />
         </div>
 
-        <div class="input-group">
-          <label>Role</label>
-          <select bind:value={role} required>
-            <option value="user" selected>User</option>
-            <option value="admin" disabled >Admin</option>
-          </select>
-        </div>
-
         <button class="submit-button" disabled={isLoading}>
           {isLoading ? 'Loading...' : 'Sign Up'}
         </button>
@@ -215,7 +254,7 @@
       </p>
     </div>
 
-  {:else if $activeForm === 'forgotpassword'}
+  {:else if $activeFormAuth === 'forgotpassword'}
 
     <!-- FORGOT PASSWORD -->
     <div class="form-section">
@@ -238,7 +277,7 @@
         </button>
       </p>
     </div>
-  {:else if $activeForm === 'resetpassword'}
+  {:else if $activeFormAuth === 'resetpassword'}
 
     <!-- RESET PASSWORD -->
     <div class="form-section">
@@ -274,7 +313,6 @@
     font-family: 'Inter', system-ui, sans-serif;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border-radius: 12px;
-    background: #2d2d2d;
     color: #e5e5e5;
   }
 
@@ -351,6 +389,8 @@
   .user-section {
     display: flex;
     justify-content: space-between;
-    padding: 1.5rem;
+    background-color: #3a3a3a;
+    border-radius: 12px;
+
   }
 </style>

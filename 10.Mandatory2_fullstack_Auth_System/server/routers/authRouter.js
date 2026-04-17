@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import e, { Router } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import db from '../database/db.js';
@@ -81,6 +81,45 @@ router.get('/users/me', isAuthenticated, (req, res) => {
     res.send({ data: req.session.user });
 });
 
+router.put('/users/me', isAuthenticated, async (req, res) => {
+    try {
+        const { username, email } = req.body;
+        const userId = req.session.user.id;
+
+        const existingUser = await db.get(
+            "SELECT * FROM users WHERE id = ?",
+            [userId]
+        );
+
+        if (!existingUser) {
+            return res.status(404).send({ errorMessage: "User not found" });
+        }
+
+        const updatedUsername = username ?? existingUser.username;
+        const updatedEmail = email ?? existingUser.email;
+
+        await db.run(
+            `UPDATE users 
+             SET username = ?, email = ?
+             WHERE id = ?`,
+            [updatedUsername, updatedEmail, userId]
+        );
+
+        res.send({
+            message: "User updated successfully",
+            data: {
+                id: userId,
+                username: updatedUsername,
+                email: updatedEmail
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ errorMessage: "Server error" });
+    }
+});
+
 // ==========================
 // ADMIN: CREATE USER WITH ROLE
 // ==========================
@@ -128,7 +167,7 @@ router.post(
 // ==========================
 router.post('/auth/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, email } = req.body;
 
         const user = await db.get(
             "SELECT * FROM users WHERE username = ?",
@@ -148,6 +187,7 @@ router.post('/auth/login', async (req, res) => {
         req.session.user = {
             id: user.id,
             username: user.username,
+            email: user.email,
             role: user.role
         };
 

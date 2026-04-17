@@ -3,4 +3,5 @@ import { writable } from "svelte/store";
 
 
 export const user = writable(null);
-export const activeForm = writable('login');
+export const activeFormAuth = writable('login');
+export const activeFormAdmin = writable('login');

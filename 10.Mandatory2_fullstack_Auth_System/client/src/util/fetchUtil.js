@@ -44,7 +44,18 @@ export function fetchPost(endpoint, body) {
         body: JSON.stringify(body)
     });
 }
-
+export function fetchPut(endpoint, body) {
+    return request(endpoint, {
+        method: "PUT",
+        body: JSON.stringify(body)
+    });
+}
+export function fetchPatch(endpoint, body) {
+    return request(endpoint, {
+        method: "PATCH",
+        body: JSON.stringify(body)
+    });
+}
 export function fetchDelete(endpoint) {
     return request(endpoint, {
         method: "DELETE"
@@ -52,5 +63,5 @@ export function fetchDelete(endpoint) {
 }
 
 export function fetchMe() {
-    return fetchGet("")
+    return fetchGet("/users/me");
 }
