@@ -2,8 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import db from '../database/db.js';
-import { sendSignupEmail } from '../utils/mail.js';
-import { log } from 'console';
+import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
 
 const router = Router();
 
@@ -32,12 +31,16 @@ const authorizeRoles = (...roles) => (req, res, next) => {
 
 
 
+
 // ==========================
 // PUBLIC SIGNUP
 // ==========================
 router.post('/auth/signup', async (req, res) => {
     try {
-        const { username, password, email, role } = req.body;
+        
+        
+        const { username, password, email } = req.body;
+
 
         if (!username || !password || !email) {
             return res.status(400).send({ errorMessage: "Missing fields" });
@@ -45,9 +48,11 @@ router.post('/auth/signup', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
+        const role = 'user';  
+
         await db.run(
             "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)",
-            [username, hashedPassword, email, role ||'user']
+            [username, hashedPassword, email, role]
         );
 
         await sendSignupEmail(email, username);
@@ -66,11 +71,21 @@ router.post('/auth/signup', async (req, res) => {
 
 
 
+
+
+// ==========================
+// CURRENT USER
+// ==========================//
+
+router.get('/users/me', isAuthenticated, (req, res) => {
+    res.send({ data: req.session.user });
+});
+
 // ==========================
 // ADMIN: CREATE USER WITH ROLE
 // ==========================
 router.post(
-    '/admin/create-user',
+    '/users',
     isAuthenticated,
     authorizeRoles('admin'),
     async (req, res) => {
@@ -184,9 +199,10 @@ router.post('/auth/forgotpassword', async (req, res) => {
             [hashedToken, expiry, user.id]
         );
 
-        await sendSignupEmail(
+        await sendForgotPasswordResetTokenEmail(
             email,
-            `Token: ${rawToken}`
+            user.username,
+            rawToken+""
         );
 
         res.send({ message: "If email exists, token has been sent" });
@@ -251,13 +267,6 @@ router.post('/auth/logout', (req, res) => {
 });
 
 
-
-// ==========================
-// CURRENT USER
-// ==========================
-router.get('/users/me', isAuthenticated, (req, res) => {
-    res.send({ data: req.session.user });
-});
 
 
 

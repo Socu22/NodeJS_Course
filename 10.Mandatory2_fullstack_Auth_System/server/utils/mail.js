@@ -45,3 +45,24 @@ export async function sendSignupEmail(email, username) {
         throw error;
     }
 }
+export async function sendForgotPasswordResetTokenEmail(email,username,token) {
+    try {
+        const info = await transporter.sendMail({
+            from: '"Auth System" <your@email.com>',
+            to: email,
+            subject: "Welcome!",
+            text: `Hello ${username}, your accounts vertification token was created successfully: ${token}`,
+            html: `<b>Hello ${username}, your accounts vertification token was created successfully: ${token}</b>`,
+        });
+                
+        // For testing: log the preview URL
+        if (process.env.NODE_ENV === 'test') {
+            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        }
+
+        return info;
+    } catch (error) {
+        console.error("Error sending email:", error);
+        throw error;
+    }
+}

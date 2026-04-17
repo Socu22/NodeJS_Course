@@ -1,18 +1,22 @@
 <script>
   import { Router, Link, Route } from 'svelte-routing';
   import AuthCard from './components/AuthCard.svelte';
+  import AdminCard from './components/AdminCard.svelte';
 </script>
 
 <Router>
   <nav>
     <Link to="/">Change</Link>
     <Link to="/">Change</Link>
-    <Link to="/">Change</Link>
-    <Link to="/">Login</Link>
+    <Link to="/admin">Change</Link>
+    <Link to="/auth">auth</Link>
 
   </nav>
   <div>
-    <Route path="/"><AuthCard /></Route>
+    <Route path="/auth"><AuthCard /></Route>
+    <Route path="/admin"><AdminCard /></Route>
+
+
   </div>
 </Router>
 

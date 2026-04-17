@@ -63,6 +63,9 @@
       } else {
         toastr.error(res.data.errorMessage || 'Signup failed');
       }
+    }catch(error){
+      console.log(error);
+      
     } finally {
       isLoading = false;
     }
@@ -122,7 +125,6 @@
   const showLogin = () => ($activeForm = 'login');
   const showSignup = () => ($activeForm = 'signup');
   const showForgotPassword = () => ($activeForm = 'forgotpassword');
-  const showResetPassworod = () => ($activeForm = 'resetpassword');
 
 </script>
 
