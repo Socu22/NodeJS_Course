@@ -1,44 +1,19 @@
 import { BASE_URL } from "../store/urlStore";
 
-const DEFAULT_TIMEOUT = 10000;
 
-function createAbortController(timeout = DEFAULT_TIMEOUT) {
-    const controller = new AbortController();
 
-    const timer = setTimeout(() => {
-        controller.abort();
-    }, timeout);
-
-    return { controller, timer };
-}
-
-async function request(endpoint, options = {}, timeout = DEFAULT_TIMEOUT) {
-    const url = `${BASE_URL}${endpoint}`;
-
-    const { controller, timer } = createAbortController(timeout);
-
+async function request(endpoint, options = {}) {
     try {
-        const response = await fetch(url, {
-            ...options,
-            credentials: "include",
-            signal: controller.signal,
+        const response = await fetch(`${BASE_URL}${endpoint }`, {
+            credentials: 'include',
             headers: {
                 "Content-Type": "application/json",
                 ...(options.headers || {})
-            }
+            },
+            ...options
         });
 
-        clearTimeout(timer);
-
-        // Safer JSON handling (prevents crash on empty responses)
-        let data;
-        const contentType = response.headers.get("content-type");
-
-        if (contentType && contentType.includes("application/json")) {
-            data = await response.json();
-        } else {
-            data = await response.text();
-        }
+        const data = await response.json();
 
         return {
             ok: response.ok,
@@ -47,16 +22,6 @@ async function request(endpoint, options = {}, timeout = DEFAULT_TIMEOUT) {
         };
 
     } catch (error) {
-        clearTimeout(timer);
-
-        if (error.name === "AbortError") {
-            return {
-                ok: false,
-                status: 408,
-                data: { errorMessage: "Request timeout" }
-            };
-        }
-
         console.error("Fetch error:", error);
 
         return {
@@ -67,28 +32,36 @@ async function request(endpoint, options = {}, timeout = DEFAULT_TIMEOUT) {
     }
 }
 
-// --- Helpers ---
-export const fetchGet = (endpoint, timeout) =>
-    request(endpoint, { method: "GET" }, timeout);
+export function fetchGet(endpoint) {
+    return request(endpoint, {
+        method: "GET"
+    });
+}
 
-export const fetchPost = (endpoint, body, timeout) =>
-    request(endpoint, {
+export function fetchPost(endpoint, body) {
+    return request(endpoint, {
         method: "POST",
         body: JSON.stringify(body)
-    }, timeout);
-
-export const fetchPut = (endpoint, body, timeout) =>
-    request(endpoint, {
+    });
+}
+export function fetchPut(endpoint, body) {
+    return request(endpoint, {
         method: "PUT",
         body: JSON.stringify(body)
-    }, timeout);
-
-export const fetchPatch = (endpoint, body, timeout) =>
-    request(endpoint, {
+    });
+}
+export function fetchPatch(endpoint, body) {
+    return request(endpoint, {
         method: "PATCH",
         body: JSON.stringify(body)
-    }, timeout);
+    });
+}
+export function fetchDelete(endpoint) {
+    return request(endpoint, {
+        method: "DELETE"
+    });
+}
 
-export const fetchDelete = (endpoint, timeout) =>
-    request(endpoint, { method: "DELETE" }, timeout);
-
+export function fetchMe() {
+    return fetchGet("/users/me");
+}

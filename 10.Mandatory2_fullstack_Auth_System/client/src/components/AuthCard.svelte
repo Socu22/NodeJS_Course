@@ -15,7 +15,7 @@
 
     // SESSION CHECK
     onMount(async () => {
-      try {
+    
         const res = await fetchGet('/users/me');
 
         if (res.ok) {
@@ -23,9 +23,7 @@
           $activeFormAuth = 'user';
         }
 
-      } catch (err) {
-        console.log('Session check failed', err);
-      }
+     
 });
 
     // LOGIN
@@ -180,7 +178,7 @@
     <div class="form-section">
       <div class="user-section">
         <h4>Welcome, <strong>{$user.username}, {$user.role}</strong>!</h4>
-        <button class="text-button" on:click={()=>{handleLogout}}>
+        <button class="text-button" on:click={handleLogout}>
           <h5>Logout</h5>
         </button>      
       </div>
