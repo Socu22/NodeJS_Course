@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "database-create": "node ./database/db.js --delete",
+    "database-update": "node ./database/db.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "chokidar": "^5.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "install": "^0.13.0",
+    "mysql2": "^3.22.0",
+    "nodemailer": "^8.0.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
+  }
+}
