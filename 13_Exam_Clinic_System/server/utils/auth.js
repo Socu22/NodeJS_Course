@@ -1,17 +1,17 @@
 import dotenv from 'dotenv/config'
-import bcrypt from "bcrypt";
-export function bcryptPassword(password) {
+import bcrypt from "bcrypt"; // password hashing tool
+export function bcryptPassword(password) { // Bbcrypt has an automatic assigned salt. slow by design & protects more against brute force
   return bcrypt.hash(password, 12);
 }
 
-import crypto from 'crypto';
+import crypto from 'crypto'; // general cryptography toolbox. Fast hash. Keyed Hashedes. ENcryption. 
 
 if (!process.env.CPR_SECRET) {
   throw new Error("CPR_SECRET is missing - required for encryption");
 }
 const KEY = crypto.scryptSync(process.env.CPR_SECRET, 'salt', 32); // 32 bytes or more:  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-export function encryptCPR(cpr) {
+export function encryptCPR(cpr) { // crypto has a more 
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv('aes-256-gcm', KEY, iv);
 
