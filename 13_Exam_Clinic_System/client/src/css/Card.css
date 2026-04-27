@@ -1,102 +1,98 @@
+.auth-container {
+  max-width: 360px;
+  margin: 3rem auto;
+  font-family: var(--sans);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
 
-    .auth-container {
-      max-width: 360px;
-      margin: 3rem auto;
-      font-family: 'Inter', system-ui, sans-serif;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
-      color: #e5e5e5;
-    }
+.form-section {
+  padding: 2rem;
+  background: var(--social-bg);
+  border-radius: 12px;
+}
 
-    .form-section {
-      padding: 2rem;
-      background: #3a3a3a;
-      border-radius: 12px;
-    }
+h3,
+h4,
+h5 {
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+}
 
-    h3 {
-      color: #a78bfa;
-      margin-bottom: 1.5rem;
-      font-size: 1.5rem;
-    }
-    h4{
-      color: #a78bfa;
-      margin-bottom: 1.5rem;
-      font-size: 0.8rem;
-    }
-    .user-section h4 {
-      overflow: auto;
-    }
-      h5{
-      color: #a78bfa;
-      margin-bottom: 1.5rem;
-      font-size: 0.8rem;
-    }
+h3 {
+  font-size: 1.5rem;
+}
 
-    .input-group {
-      margin-bottom: 1.2rem;
-    }
+h4,
+h5 {
+  font-size: 0.9rem;
+}
 
-    label {
-      display: block;
-      margin-bottom: 0.4rem;
-      font-size: 0.9rem;
-    }
+.input-group {
+  margin-bottom: 1.2rem;
+}
 
-    input, select {
-      width: 82%;
-      padding: 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #555;
-      background: #4a4a4a;
-      color: #fff;
-    }
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
 
-    input:focus, select:focus {
-      border-color: #a78bfa;
-      outline: none;
-    }
+input,
+select {
+  width: 82%;
+  padding: 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--text-h);
+}
 
-    .submit-button {
-      width: 100%;
-      padding: 0.75rem;
-      background: #6b48d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
 
-    .submit-button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
+.submit-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
+.submit-button:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+}
 
-    .text-button {
-      background: none;
-      border: none;
-      color: #a78bfa;
-      cursor: pointer;
-    }
+.text-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+}
 
+.switch-text {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text);
+}
 
+.user-section {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 12px;
+}
 
-    .switch-text {
-      margin-top: 1rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: #aaa;
-    }
-
-    .user-section {
-      display: flex;
-      justify-content: space-between;
-      background-color: #3a3a3a;
-      border-radius: 12px;
-
-    }
-    .user-section p {
-      font-size: inherit/2;
-    }
-  
+.user-section p {
+  font-size: 0.8rem;
+}
