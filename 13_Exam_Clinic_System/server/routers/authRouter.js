@@ -1,8 +1,9 @@
 import e, { Router } from 'express';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import crypto, { randomBytes } from 'crypto';
 import db from '../database/db.js';
 import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
+import { decryptCPR } from '../utils/auth.js';
 
 const router = Router();
 
@@ -332,4 +333,26 @@ router.get(
     }
 );
 
+
+// ==========================
+// CPR DECRYPTION TEST
+// ==========================
+router.get('/test', (req, res) => {
+  try {
+    const patient = db.prepare(`
+      SELECT cpr_encrypted FROM patients WHERE user_id = ?
+    `).get(3);
+
+    if (!patient) {
+      return res.status(404).send({ error: 'Patient not found' });
+    }
+
+    const cpr = decryptCPR(patient.cpr_encrypted);
+
+    return res.send({ data: cpr });
+
+  } catch (err) {
+    return res.status(500).send({ error: 'Failed to decrypt CPR' });
+  }
+});
 export default router;
