@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import crypto, { randomBytes } from 'crypto';
 import db from '../database/db.js';
 import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
-import { decryptCPR } from '../utils/auth.js';
+import { decryptCPR } from '../utils/encryption.js';
 
 const router = Router();
 

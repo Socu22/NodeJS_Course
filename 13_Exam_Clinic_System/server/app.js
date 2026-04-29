@@ -57,6 +57,9 @@ app.use(express.json());
 import authRouter from './routers/authRouter.js';
 app.use(authRouter);
 
+import clinicRouter from './routers/clinicRouter.js';
+app.use(clinicRouter);
+
 // ---------- 404 ----------
 app.get('/{*splat}', (req, res) => {
 	res.send(`<div>

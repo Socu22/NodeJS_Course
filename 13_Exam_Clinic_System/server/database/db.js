@@ -5,7 +5,7 @@ const deleteMode = process.argv.includes("--delete");
 
 
 
-import {bcryptPassword,encryptCPR,decryptCPR} from '../utils/auth.js'
+import {bcryptPassword,encryptCPR,decryptCPR} from '../utils/encryption.js'
 
 async function initializeDatabase() {
   try {
@@ -79,7 +79,7 @@ async function initializeDatabase() {
       `);
 
       insertRoom.run('Room 1', 'free');
-      insertRoom.run('Room 2', 'occupied');
+      insertRoom.run('Room 2', 'free');
       insertRoom.run('Room 3', 'free');
 
       const patientUser = db.prepare(`
