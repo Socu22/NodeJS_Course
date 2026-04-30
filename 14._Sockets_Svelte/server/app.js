@@ -48,13 +48,27 @@ io.on("connection", (socket)=> { // when a socket is connected
         console.log(data);
 
         const session = socket.request.session;
+                session.timesSubmitted = (session.timesSubmitted || 0) + 1;;
+                session.save();
 
-        session.timesSubmitted = session.timesSubmitted +1 ||1 
+                data.nickname = session.nickname;
+                data.timesSubmitted = session.timesSubmitted;
+
+                // Emits to ALL sockets including itself
+                io.emit("server-sends-color", data);
+
+
+
+        // Broadcasts to all sockets EXCEPT itself
+        // socket.broadcast.emit("server-sends-color", data);
+
+        // Emits to the socket ITSELF but not the others
+        // socket.emit("server-sends-color", data);
+
         //console.log(session);
         
-
-        socket.emit("server-sends-color", data);
-        session.save();
+        //to itself
+        //socket.emit("server-sends-color", data);
         
     } );
 
