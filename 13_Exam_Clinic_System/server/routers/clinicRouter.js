@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import db from '../database/db.js';
+import { encryptCPR,decryptCPR } from '../utils/encryption.js';
+import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 
 const router = Router();
 
@@ -15,18 +17,24 @@ router.get('/rooms', (req, res) => {
   }
 });
 
-router.get('/patients', (req, res) => {
+
+router.get('/patients', isAuthenticated, authorizeRoles("admin","coordinator"), (req, res) => {
   try {
     const patients = db.prepare(`
       SELECT * FROM patients
     `).all();
+
+    patients.map((patient) => patient.cpr_encrypted )
 
     return res.send({ data: patients });
   } catch (err) {
     return res.status(500).send({ errorMessage: 'Failed to fetch patients' });
   }
 });
-router.post('/assign-room', (req, res) => {
+
+
+
+router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
   try {
     const patientId = Number(req.body.patientId);
     const roomId = Number(req.body.roomId);

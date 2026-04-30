@@ -16,15 +16,18 @@
     $activeFormUser = 'example'
   });
 
+  
+
 </script>
 
 <div class="auth-container">
 
 
 {#if $activeFormUser === 'example' && user && $user?.role === 'patient'}
-    <!-- ADMIN SIGNUP -->
+    <!-- PATIENT ????????????? -->
     <div class="form-section">
       <h3>Test</h3>
+      
 
 
     </div>

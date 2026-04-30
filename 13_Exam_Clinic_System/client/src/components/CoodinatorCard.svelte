@@ -2,9 +2,8 @@
   import { onMount } from 'svelte';
   import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
-  import { user } from '../store/userStore.js';
+  import { user, activeFormAuth } from '../store/userStore.js';
 
-  let currentStep = 1;
   let isLoading = false;
 
   let rooms = [];
@@ -27,6 +26,7 @@
           return;
         }
 
+        activeFormAuth.set('selectRoom');
         await loadRooms();
       }
     } catch (err) {
@@ -54,7 +54,7 @@
 
   async function chooseRoom(room) {
     selectedRoom = room;
-    currentStep = 2;
+    activeFormAuth.set('assignPatient');
     await loadPatients();
   }
 
@@ -87,9 +87,11 @@
 
       if (res.ok) {
         toastr.success('Patient assigned successfully');
+
         selectedPatient = patient;
         await loadRooms();
-        currentStep = 1;
+
+        activeFormAuth.set('selectRoom');
       }
     } catch (err) {
       toastr.error('Assignment failed');
@@ -97,12 +99,18 @@
       isLoading = false;
     }
   }
+
+  function showRooms() {
+    activeFormAuth.set('selectRoom');
+  }
 </script>
 
 <div class="auth-container">
   {#if $user?.role === 'coordinator'}
 
-    {#if currentStep === 1 }
+    <!-- SELECT ROOM -->
+    {#if $activeFormAuth === 'selectRoom'}
+
       <div class="form-section">
         <h3>Select Room</h3>
 
@@ -138,18 +146,23 @@
           </table>
         {/if}
       </div>
-    {/if}
 
-    {#if currentStep === 2}
+    <!-- ASSIGN PATIENT -->
+    {:else if $activeFormAuth === 'assignPatient'}
+
       <div class="form-section">
-        <h3>{selectedRoom?.name}</h3>
 
-        <button
-          class="text-button"
-          on:click={() => currentStep = 1}
-        >
-          Back
-        </button>
+        <div class="user-section">
+          <h4>
+            Selected Room: <strong>{selectedRoom?.name}</strong>
+          </h4>
+
+          <button class="text-button" on:click={showRooms}>
+            <h4>back</h4>
+          </button>
+        </div>
+
+        <h3>Assign Patient</h3>
 
         {#if isLoading}
           <p>Loading...</p>
@@ -181,7 +194,9 @@
             </tbody>
           </table>
         {/if}
+
       </div>
+
     {/if}
 
   {/if}

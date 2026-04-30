@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 import crypto, { randomBytes } from 'crypto';
 import db from '../database/db.js';
 import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
-import { decryptCPR } from '../utils/encryption.js';
+import { encryptCPR,decryptCPR } from '../utils/encryption.js';
+import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 
 const router = Router();
 
@@ -26,66 +27,77 @@ This API follows a hybrid architecture:
  *    - Enforced via authorizeRoles middleware
 */
 
-// AUTH
-const isAuthenticated = (req, res, next) => {
-    if (!req.session?.user) {
-        return res.status(401).send({ errorMessage: "Not authenticated" });
-    }
-    next();
-};
-
-// ROLE
-const authorizeRoles = (...roles) => (req, res, next) => {
-    const user = req.session?.user;
-
-    if (!user) {
-        return res.status(401).send({ errorMessage: "Not authenticated" });
-    }
-
-    if (!roles.includes(user.role)) {
-        return res.status(403).send({ errorMessage: "Forbidden" });
-    }
-
-    next();
-};
 
 
+// ==========================
+// SIGNUP if patient 
+// ==========================
+function createPatient(userId, cpr) {
+  const encryptedCPR = encryptCPR(cpr);
 
+  return db.prepare(`
+    INSERT INTO patients (user_id, cpr_encrypted, room_id)
+    VALUES (?, ?, NULL)
+  `).run(userId, encryptedCPR);
+}
 
 // ==========================
 // PUBLIC SIGNUP
 // ==========================
 router.post('/auth/signup', async (req, res) => {
-    try {
-        
-        
-        const { username, password, email } = req.body;
+  try {
+    const { username, password, email, cpr } = req.body;
 
-
-        if (!username || !password || !email) {
-            return res.status(400).send({ errorMessage: "Missing fields" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        const role = 'patient';  
-
-        db.prepare(
-            "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)"
-        ).run(username, hashedPassword, email, role);
-
-        await sendSignupEmail(email, username);
-
-        res.send({ message: "Signup successful" });
-
-    } catch (error) {
-        if (error.message.includes("UNIQUE")) {
-            return res.status(400).send({ errorMessage: "User already exists" });
-        }
-
-        console.error(error);
-        res.status(500).send({ errorMessage: "Server error" });
+    if (!username || !password || !email || !cpr) {
+      return res.status(400).send({
+        errorMessage: 'Missing fields'
+      });
     }
+    if (String(cpr).length !== 10) {
+      return res.status(400).send({
+       errorMessage: 'CPR must be 10 digits'
+    });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const role = 'patient';
+
+    db.exec('BEGIN IMMEDIATE');
+
+    const userResult = db.prepare(`
+      INSERT INTO users (username, password, email, role)
+      VALUES (?, ?, ?, ?)
+    `).run(username, hashedPassword, email, role);
+
+    const userId = userResult.lastInsertRowid;
+
+    createPatient(userId, cpr);
+
+    db.exec('COMMIT');
+
+    await sendSignupEmail(email, username);
+
+    return res.send({
+      successMessage: 'Signup successful'
+    });
+
+  } catch (error) {
+    try {
+      db.exec('ROLLBACK');
+    } catch {}
+
+    if (error.message.includes('UNIQUE')) {
+      return res.status(400).send({
+        errorMessage: 'User or CPR already exists'
+      });
+    }
+
+    console.error(error);
+
+    return res.status(500).send({
+      errorMessage: 'Server error'
+    });
+  }
 });
 
 
@@ -146,44 +158,73 @@ router.post(
     authorizeRoles('admin'),
     async (req, res) => {
         try {
-            const { username, password, email, role } = req.body;
+            const { username, password, email, role, cpr } = req.body;
 
             if (!username || !password || !email) {
-                return res.status(400).send({ errorMessage: "Missing fields" });
+                return res.status(400).send({
+                    errorMessage: "Missing fields"
+                });
+            }
+
+            if (cpr && String(cpr).length !== 10) {
+                return res.status(400).send({
+                    errorMessage: "CPR must be 10 digits"
+                });
             }
 
             const hashedPassword = await bcrypt.hash(password, 12);
+            const finalRole = role || 'user';
 
-        
-            const finalRole = role ? role : 'user';
+            db.exec('BEGIN IMMEDIATE');
 
-            db.prepare(
-                "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)")
-                .run(username, hashedPassword, email, finalRole);
+            const result = db.prepare(`
+                INSERT INTO users (username, password, email, role)
+                VALUES (?, ?, ?, ?)
+            `).run(username, hashedPassword, email, finalRole);
+
+            const userId = result.lastInsertRowid;
+
+
+            if (cpr) {
+                createPatient(userId, cpr);
+            }
+
+            db.exec('COMMIT');
 
             await sendSignupEmail(email, username);
 
-            res.send({ message: `User created with role: ${finalRole}` });
+            return res.send({
+                successMessage: cpr
+                    ? `User created with role: ${finalRole} and patient created`
+                    : `User created with role: ${finalRole}`
+            });
 
         } catch (error) {
+            try {
+                db.exec('ROLLBACK');
+            } catch {}
+
             if (error.message.includes("UNIQUE")) {
-                return res.status(400).send({ errorMessage: "User already exists" });
+                return res.status(400).send({
+                    errorMessage: "User or CPR already exists"
+                });
             }
 
             console.error(error);
-            res.status(500).send({ errorMessage: "Server error" });
+
+            return res.status(500).send({
+                errorMessage: "Server error"
+            });
         }
     }
 );
-
-
 
 // ==========================
 // LOGIN
 // ==========================
 router.post('/auth/login', async (req, res) => {
     try {
-        const { username, password, email } = req.body;
+        const { username, password } = req.body;
 
         const user = db.prepare(
             "SELECT * FROM users WHERE username = ?"
@@ -198,6 +239,17 @@ router.post('/auth/login', async (req, res) => {
         if (!valid) {
             return res.status(400).send({ errorMessage: "Invalid credentials" });
         }
+
+       if (user.role === 'patient'){
+            db.prepare(`
+                UPDATE patients
+                SET status = 'waiting'
+                WHERE user_id = ?
+                `).run(user.id);
+       }
+        
+        
+        
 
         req.session.user = {
             id: user.id,

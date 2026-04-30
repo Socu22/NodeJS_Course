@@ -4,6 +4,7 @@
     import toastr from 'toastr';
     import { user, activeFormAuth } from '../store/userStore.js';
 
+    let cpr = '';
     let email = '';
     let username = '';
     let password = '';
@@ -85,12 +86,13 @@
           username,
           email,
           password,
-          role
+          role,
+          cpr
         });
 
         if (res.ok) {
           $activeFormAuth = 'login';
-          username = email = password = '';
+          cpr = username = email = password = '';
           role = 'user';
           toastr.success('Signup successful!');
         } else {
@@ -242,6 +244,10 @@
         <h3>Sign Up</h3>
 
         <form on:submit|preventDefault={handleSignup}>
+          <div class="input-group">
+            <label>CPR</label>
+            <input bind:value={cpr} maxlength="10" required />
+          </div>
           <div class="input-group">
             <label>Username</label>
             <input bind:value={username} required />

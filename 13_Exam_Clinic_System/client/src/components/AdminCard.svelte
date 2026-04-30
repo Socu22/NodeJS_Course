@@ -3,7 +3,7 @@
   import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormUser } from '../store/userStore.js';
-
+  let cpr = '';
   let email = '';
   let username = '';
   let password = '';
@@ -28,12 +28,13 @@
         username,
         email,
         password,
-        role
+        role,
+        cpr
       });
 
       if (res.ok) {
         $activeFormUser = 'login';
-        username = email = password = role = '';
+        cpr = username = email = password = role = '';
         toastr.success('Auth Signup successful!');
       } else {
         toastr.error(res.data.errorMessage || 'Auth Signup failed');
@@ -60,6 +61,21 @@
 
       <form on:submit|preventDefault={handleAuthSignup}>
         <div class="input-group">
+          <label>Role</label>
+          <select bind:value={role} required>
+            <option value="patient" selected>Patient</option>
+            <option value="coordinator" >Coordinator</option>
+            <option value="nurse" >Nurse</option>
+            <option value="admin" >Admin</option>
+          </select>
+        </div>
+        {#if role === "patient"}
+        <div class="input-group">
+            <label>CPR</label>
+            <input bind:value={cpr} maxlength="10" required />
+          </div>
+        {/if}
+        <div class="input-group">
           <label>Username</label>
           <input bind:value={username} required />
         </div>
@@ -74,15 +90,7 @@
           <input type="password" bind:value={password} required />
         </div>
 
-        <div class="input-group">
-          <label>Role</label>
-          <select bind:value={role} required>
-            <option value="patient" selected>Patient</option>
-            <option value="coordinator" >Coordinator</option>
-            <option value="nurse" >Nurse</option>
-            <option value="admin" >Admin</option>
-          </select>
-        </div>
+        
 
         <button class="submit-button" disabled={isLoading}>
           {isLoading ? 'Loading...' : 'Admin Sign Up'}

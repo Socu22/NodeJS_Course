@@ -44,7 +44,7 @@ async function initializeDatabase() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE NOT NULL,
         cpr_encrypted TEXT UNIQUE NOT NULL,
-        status TEXT CHECK(status IN ('waiting','in_room','done')) DEFAULT 'waiting',
+        status TEXT CHECK (status IN ('registered','waiting','in_room','done')) DEFAULT 'registered',
         room_id INTEGER,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL
@@ -94,7 +94,7 @@ async function initializeDatabase() {
       insertPatient.run(
         patientUser.id,
         encryptCPR('120390-1234'),
-        'waiting',
+        'registered',
         null
       );
 
