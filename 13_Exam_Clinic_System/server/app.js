@@ -76,9 +76,9 @@ io.engine.use(sessionMiddleware);
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
-  socket.on('assign-room', (data) => {
-    io.emit('room-updated', data);
-  });
+  socket.on('coordinator-assigns-room', (data) => {
+    console.log(data);
+    socket.broadcast.emit('room-assignment', data);  });
 
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);

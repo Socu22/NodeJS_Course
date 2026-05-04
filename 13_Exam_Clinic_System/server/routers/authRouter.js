@@ -148,6 +148,37 @@ router.put('/users/me', isAuthenticated, async (req, res) => {
         res.status(500).send({ errorMessage: "Server error" });
     }
 });
+router.get('/patients/me', isAuthenticated, authorizeRoles('patient'), (req, res) => {
+    try {
+        const userId = req.session.user.id;
+
+        const patient = db.prepare(`
+            SELECT 
+                p.*, 
+                r.name AS roomName
+            FROM patients p
+            LEFT JOIN rooms r ON p.room_id = r.id
+            WHERE p.user_id = ?
+        `).get(userId);
+
+        if (!patient) {
+            return res.status(404).send({
+                errorMessage: "Patient not found"
+            });
+        }
+
+        patient.cpr = decryptCPR(patient.cpr_encrypted);
+        delete patient.cpr_encrypted;
+
+        res.send({ data: patient });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({
+            errorMessage: "Server error"
+        });
+    }
+});
 
 // ==========================
 // ADMIN: CREATE USER WITH ROLE
@@ -245,7 +276,7 @@ router.post('/auth/login', async (req, res) => {
                 UPDATE patients
                 SET status = 'waiting'
                 WHERE user_id = ?
-                `).run(user.id);
+                AND status ='registered'`).run(user.id);
        }
         
         
@@ -366,7 +397,29 @@ router.post('/auth/resetpassword', async (req, res) => {
 // LOGOUT
 // ==========================
 router.post('/auth/logout', (req, res) => {
-    req.session.destroy(() => res.send({ message: "Logged out" }));
+    try {
+        const user = req.session.user;
+
+        if (user?.role === 'patient') {
+            db.prepare(`
+                UPDATE patients
+                SET status = 'registered',
+                    room_id = NULL
+                WHERE user_id = ?
+                AND status = 'waiting'
+            `).run(user.id);
+        }
+
+        req.session.destroy(() => {
+            res.send({ message: "Logged out" });
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({
+            errorMessage: "Logout failed"
+        });
+    }
 });
 
 

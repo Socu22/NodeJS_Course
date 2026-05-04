@@ -5,7 +5,7 @@ import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 
 const router = Router();
 
-router.get('/rooms', (req, res) => {
+router.get('/rooms', isAuthenticated, authorizeRoles("admin", "coordinator","patient" ) ,(req, res) => {
   try {
     const rooms = db.prepare(`
       SELECT * FROM rooms
@@ -16,22 +16,47 @@ router.get('/rooms', (req, res) => {
     return res.status(500).send({ errorMessage: 'Failed to fetch rooms' });
   }
 });
+router.get('/rooms/:id', isAuthenticated, authorizeRoles("admin", "coordinator"), (req, res) => {
+    try {
+        const room = db.prepare(`
+            SELECT * FROM rooms WHERE id = ?
+        `).get(req.params.id);
+
+        if (!room) {
+            return res.status(404).send({
+                errorMessage: 'Room not found'
+            });
+        }
+
+        res.send({ data: room });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({
+            errorMessage: 'Server error'
+        });
+    }
+});
 
 
-router.get('/patients', isAuthenticated, authorizeRoles("admin","coordinator"), (req, res) => {
+router.get('/patients', isAuthenticated, authorizeRoles("admin", "coordinator"), (req, res) => {
   try {
     const patients = db.prepare(`
       SELECT * FROM patients
     `).all();
 
-    patients.map((patient) => patient.cpr_encrypted )
+    const decryptedPatients = patients.map((patient) => ({
+      ...patient,
+      cpr_encrypted: decryptCPR(patient.cpr_encrypted)
+    }));
 
-    return res.send({ data: patients });
+    return res.send({ data: decryptedPatients });
+
   } catch (err) {
+    console.error(err);
     return res.status(500).send({ errorMessage: 'Failed to fetch patients' });
   }
 });
-
 
 
 router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {

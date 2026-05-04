@@ -55,7 +55,7 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS blood_samples (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         patient_id INTEGER NOT NULL,
-        test_type TEXT,
+        test_type TEXT CHECK (test_type IN ('blood_count', 'glucose', 'cholesterol', 'calc')),
         status TEXT CHECK(status IN ('collected','cooling','sent')) DEFAULT 'collected',
         created_at INTEGER DEFAULT (strftime('%s','now')),
         FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
@@ -107,8 +107,8 @@ async function initializeDatabase() {
         VALUES (?, ?, ?);
       `);
 
-      insertSample.run(patientRecord.id, 'blood test', 'collected');
-      insertSample.run(patientRecord.id, 'dna test', 'cooling');
+      insertSample.run(patientRecord.id, 'calc', 'collected');
+      insertSample.run(patientRecord.id, 'glucose', 'cooling');
     }
 
     return db;

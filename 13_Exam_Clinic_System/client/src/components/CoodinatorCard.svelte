@@ -3,6 +3,9 @@
   import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormAuth } from '../store/userStore.js';
+  import io from 'socket.io-client';
+  import {BASE_URL_STORE} from '../store/urlStore.js'
+
 
   let isLoading = false;
 
@@ -11,6 +14,8 @@
 
   let selectedRoom = null;
   let selectedPatient = null;
+
+  let socket;
 
   onMount(async () => {
     try {
@@ -75,6 +80,7 @@
       isLoading = false;
     }
   }
+  
 
   async function assignPatient(patient) {
     try {
@@ -90,6 +96,17 @@
 
         selectedPatient = patient;
         await loadRooms();
+
+        socket = io($BASE_URL_STORE)
+        
+
+        socket.emit("coordinator-assigns-room", {
+          data: {
+            patientId: patient.id,
+            roomId: selectedRoom.id,
+            roomName: selectedRoom.name
+          }
+        });
 
         activeFormAuth.set('selectRoom');
       }
@@ -132,12 +149,10 @@
                   <td>{room.name}</td>
                   <td>{room.status}</td>
                   <td>
-                    <button
-                      class="submit-button"
-                      disabled={room.status === 'occupied'}
-                      on:click={() => chooseRoom(room)}
-                    >
-                      Choose
+                    <button class="submit-button" 
+                    disabled={room.status === 'occupied'}
+                    on:click={() => chooseRoom(room)}>
+                      {room.status === 'occupied' ? 'Chosen' : 'Choose'}
                     </button>
                   </td>
                 </tr>
@@ -170,7 +185,7 @@
           <table>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>CPR</th>
                 <th>Status</th>
                 <th>Assign</th>
               </tr>
@@ -179,7 +194,8 @@
             <tbody>
               {#each patients as patient}
                 <tr>
-                  <td>{patient.id}</td>
+                  <td>{patient.cpr_encrypted}</td>
+
                   <td>{patient.status}</td>
                   <td>
                     <button

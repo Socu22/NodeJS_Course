@@ -22,8 +22,7 @@
         if (res.ok) {
           $user = res.data.data;
           $activeFormAuth = 'user';
-        }
-
+        } 
      
 });
 
