@@ -35,11 +35,13 @@
 
 /* ---------------- SHARED COMPONENTS ---------------- */
 
-.form-section {
-  padding: 2rem;
+
+.form-section { 
+  padding: 2rem; 
   background: var(--social-bg);
-  border-radius: 12px;
-}
+   border: 1px solid var(--border);
+   border-radius: 14px; 
+   box-shadow: 0 12px 35px var(--shadow), inset 0 1px 0 var(--shadow); position: relative; }
 
 h3,
 h4,

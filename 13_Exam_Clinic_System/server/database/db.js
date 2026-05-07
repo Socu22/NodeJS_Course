@@ -3,9 +3,11 @@ const db = new DatabaseSync('clinicDatabase.db'); // sqlite3 clinicDatabase.db
 
 const deleteMode = process.argv.includes("--delete");
 
-
-
-import {bcryptPassword,encryptCPR,decryptCPR} from '../utils/encryption.js'
+import {
+  bcryptPassword,
+  encryptCPR,
+  decryptCPR
+} from '../utils/encryption.js';
 
 async function initializeDatabase() {
   try {
@@ -46,8 +48,10 @@ async function initializeDatabase() {
         cpr_encrypted TEXT UNIQUE NOT NULL,
         status TEXT CHECK (status IN ('registered','waiting','in_room','done')) DEFAULT 'registered',
         room_id INTEGER,
+        nurse_id INTEGER,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL
+        FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL,
+        FOREIGN KEY (nurse_id) REFERENCES users(id) ON DELETE SET NULL
       );
     `);
 
@@ -68,7 +72,7 @@ async function initializeDatabase() {
         VALUES (?, ?, ?, ?);
       `);
 
-      insertUser.run('admin',  await bcryptPassword("admin"), 'admin@example.com', 'admin');
+      insertUser.run('admin', await bcryptPassword("admin"), 'admin@example.com', 'admin');
       insertUser.run('demo', await bcryptPassword("demo"), 'demo@example.com', 'demo');
       insertUser.run('patient', await bcryptPassword("patient"), 'patient@example.com', 'patient');
       insertUser.run('nurse', await bcryptPassword("nurse"), 'nurse@example.com', 'nurse');
@@ -107,11 +111,19 @@ async function initializeDatabase() {
         VALUES (?, ?, ?);
       `);
 
-      insertSample.run(patientRecord.id, 'calc', 'collected');
-      insertSample.run(patientRecord.id, 'glucose', 'cooling');
+      const patients = db.prepare(`
+        SELECT id FROM patients
+      `).all();
+
+      for (const p of patients) {
+        insertSample.run(p.id, 'blood_count', 'collected');
+        insertSample.run(p.id, 'glucose', 'cooling');
+        insertSample.run(p.id, 'cholesterol', 'sent');
+      }
     }
 
     return db;
+
   } catch (err) {
     console.error('Error initializing database:', err);
     throw err;

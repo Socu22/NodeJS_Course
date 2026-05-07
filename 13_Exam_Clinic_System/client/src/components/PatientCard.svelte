@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchGet } from '../util/fetchUtil.js';
+  import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormUser } from '../store/userStore.js';
   import io from 'socket.io-client';
@@ -8,6 +8,8 @@
 
   let patient = null;
   let assignedRoom = null;
+  let bloodSamples = [];
+
   let isLoading = false;
   let socket;
 
@@ -17,7 +19,7 @@
     socket = io(BASE_URL);
 
     socket.on('room-assignment', (data) => {
-      console.log(data);
+      console.log('room-assignment:', data);
 
       if (patient?.id === data.data.patientId) {
         assignedRoom = data.data;
@@ -26,6 +28,7 @@
     });
 
     await loadPatient();
+    await loadBloodSamples();
   });
 
   async function loadPatient() {
@@ -36,6 +39,14 @@
 
       if (res.ok) {
         patient = res.data.data;
+
+        // optional fallback room display
+        if (patient.roomName) {
+          assignedRoom = {
+            roomName: patient.roomName
+          };
+        }
+
       } else {
         toastr.error(res.data.errorMessage || 'Failed loading patient');
       }
@@ -46,11 +57,27 @@
       isLoading = false;
     }
   }
+
+  async function loadBloodSamples() {
+    try {
+      const res = await fetchPost('/blood-samples/me');
+
+      if (res.ok) {
+        bloodSamples = res.data.data;
+      } else {
+        toastr.error(res.data.errorMessage || 'Failed loading samples');
+      }
+
+    } catch (err) {
+      toastr.error('Failed loading samples');
+    }
+  }
 </script>
 
 <div class="auth-container">
 
   {#if $activeFormUser === 'patientAndRoomAssignment' && $user?.role === 'patient'}
+
     <div class="form-section">
       <h3>Patient Information</h3>
 
@@ -58,6 +85,8 @@
         <p>Loading...</p>
 
       {:else if patient}
+
+        <!-- PATIENT INFO -->
         <div class="input-group">
           <label>CPR</label>
           <input readonly value={patient.cpr} />
@@ -65,13 +94,42 @@
 
         <div class="input-group">
           <label>Room Name</label>
-          <input readonly value={assignedRoom?.roomName ?? patient?.roomName ?? 'Not assigned'} />
+          <input readonly value={assignedRoom?.roomName ?? 'Not assigned'} />
+        </div>
+
+        <!-- BLOOD SAMPLES -->
+        <div class="form-section">
+          <h3>Blood Samples</h3>
+
+          {#if bloodSamples.length === 0}
+            <p>No samples found</p>
+          {:else}
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {#each bloodSamples as sample}
+                  <tr>
+                    <td>{sample.test_type}</td>
+                    <td>{sample.status}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          {/if}
         </div>
 
       {:else}
         <p>No patient found</p>
       {/if}
+
     </div>
+
   {/if}
 
 </div>

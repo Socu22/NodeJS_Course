@@ -59,6 +59,7 @@ router.get('/patients', isAuthenticated, authorizeRoles("admin", "coordinator"),
 });
 
 
+
 router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
   try {
     const patientId = Number(req.body.patientId);
@@ -128,5 +129,161 @@ router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator
     });
   }
 });
+router.get(
+  '/assign-patient',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const nurseId = req.session.user.id;
+
+      db.exec('BEGIN IMMEDIATE');
+
+      // 1. check already assigned patient
+      let patient = db.prepare(`
+        SELECT p.*, r.name AS roomName
+        FROM patients p
+        LEFT JOIN rooms r ON p.room_id = r.id
+        WHERE p.nurse_id = ?
+        AND p.status = 'in_room'
+        LIMIT 1
+      `).get(nurseId);
+
+      // 2. if none, CLAIM one atomically
+      if (!patient) {
+        const candidate = db.prepare(`
+          SELECT id
+          FROM patients
+          WHERE status = 'in_room'
+          AND nurse_id IS NULL
+          ORDER BY id
+          LIMIT 1
+        `).get();
+
+        if (candidate) {
+          db.prepare(`
+            UPDATE patients
+            SET nurse_id = ?
+            WHERE id = ?
+            AND nurse_id IS NULL
+          `).run(nurseId, candidate.id);
+
+          patient = db.prepare(`
+            SELECT p.*, r.name AS roomName
+            FROM patients p
+            LEFT JOIN rooms r ON p.room_id = r.id
+            WHERE p.id = ?
+          `).get(candidate.id);
+        }
+      }
+
+      db.exec('COMMIT');
+
+      if (!patient) {
+        return res.send({ data: null });
+      }
+
+      patient.cpr = decryptCPR(patient.cpr_encrypted);
+      delete patient.cpr_encrypted;
+
+      return res.send({ data: patient });
+
+    } catch (err) {
+      try { db.exec('ROLLBACK'); } catch {}
+
+      console.error(err);
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+
+router.post(
+  '/blood-samples',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const { patientId } = req.body;
+
+      if (!patientId) {
+        return res.status(400).send({
+          errorMessage: 'Missing patientId'
+        });
+      }
+
+      const samples = db.prepare(`
+        SELECT *
+        FROM blood_samples
+        WHERE patient_id = ?
+      `).all(patientId);
+
+      return res.send({
+        data: samples
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+router.patch(
+  '/blood-samples',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const { sampleId } = req.body;
+
+      if (!sampleId) {
+        return res.status(400).send({
+          errorMessage: 'Missing sampleId'
+        });
+      }
+
+      const sample = db.prepare(`
+        SELECT *
+        FROM blood_samples
+        WHERE id = ?
+      `).get(sampleId);
+
+      if (!sample) {
+        return res.status(404).send({
+          errorMessage: 'Sample not found'
+        });
+      }
+
+      let nextStatus = sample.status;
+
+      if (sample.status === 'collected') {
+        nextStatus = 'cooling';
+      } else if (sample.status === 'cooling') {
+        nextStatus = 'sent';
+      }
+
+      db.prepare(`
+        UPDATE blood_samples
+        SET status = ?
+        WHERE id = ?
+      `).run(nextStatus, sampleId);
+
+      return res.send({
+        message: `Sample updated to ${nextStatus}`
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
 
 export default router;

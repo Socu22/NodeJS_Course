@@ -1,35 +1,196 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchGet, fetchPost } from '../util/fetchUtil.js';
+  import { fetchGet, fetchPatch, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
-  import { user, activeFormUser } from '../store/userStore.js';
-
-  let email = '';
-  let username = '';
-  let password = '';
-  let role = '';
+  import { user, activeFormAuth } from '../store/userStore.js';
+  import io from 'socket.io-client';
+  import { BASE_URL_STORE } from '../store/urlStore.js';
 
   let isLoading = false;
 
-  // SESSION CHECK
+  let patient = null;
+  let bloodSamples = [];
+
+  let socket;
+
   onMount(async () => {
-    $activeFormUser = 'example'
+    try {
+      isLoading = true;
+
+      const res = await fetchGet('/users/me');
+
+      if (res.ok) {
+        $user = res.data.data;
+
+        if ($user?.role !== 'nurse') {
+          toastr.error('Unauthorized');
+          return;
+        }
+
+        activeFormAuth.set('nurseDashboard');
+
+        socket = io($BASE_URL_STORE);
+
+        socket.on('room-assignment', async () => {
+          await loadAssignedPatient();
+        });
+
+        await loadAssignedPatient();
+      }
+
+    } catch (err) {
+      toastr.error('Session check failed');
+    } finally {
+      isLoading = false;
+    }
   });
 
+  async function loadAssignedPatient() {
+    try {
+      isLoading = true;
+
+      const res = await fetchGet('/assign-patient');
+
+      if (res.ok) {
+        patient = res.data.data;
+
+        if (patient) {
+          await loadBloodSamples();
+        }
+      }
+
+    } catch (err) {
+      toastr.error('Failed loading patient');
+
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function loadBloodSamples() {
+    try {
+      const res = await fetchPost('/blood-samples', {
+        patientId: patient.id
+      });
+
+      if (res.ok) {
+        bloodSamples = res.data.data;
+      }
+
+    } catch (err) {
+      toastr.error('Failed loading samples');
+    }
+  }
+
+  async function advanceSample(sample) {
+    try {
+      isLoading = true;
+
+      const res = await fetchPatch('/blood-samples', {
+        sampleId: sample.id
+      });
+
+      if (res.ok) {
+        toastr.success('Sample updated');
+
+        await loadBloodSamples();
+      }
+
+    } catch (err) {
+      toastr.error('Update failed');
+
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function getAction(status) {
+    if (status === 'collected') return 'Move to cooling';
+    if (status === 'cooling') return 'Send sample';
+    return 'Done';
+  }
 </script>
 
 <div class="auth-container">
+  {#if $user?.role === 'nurse'}
 
+    <!-- NURSE DASHBOARD -->
+    {#if $activeFormAuth === 'nurseDashboard'}
 
-{#if $activeFormUser === 'example' && user && $user?.role === 'nurse'}
-    <!-- ADMIN SIGNUP -->
-    <div class="form-section">
-      <h3>Test</h3>
+      <div class="form-section">
+        <h3>Assigned Patient</h3>
 
+        {#if isLoading}
+          <p>Loading...</p>
 
-    </div>
+        {:else if patient}
 
+          <div class="input-group">
+            <label>CPR</label>
+            <input readonly value={patient.cpr} />
+          </div>
+
+          <div class="input-group">
+            <label>Room</label>
+            <input readonly value={patient.roomName ?? 'No room'} />
+          </div>
+
+          <div class="input-group">
+            <label>Status</label>
+            <input readonly value={patient.status} />
+          </div>
+
+        {:else}
+          <p>No assigned patient</p>
+        {/if}
+      </div>
+
+      <!-- BLOOD SAMPLES -->
+      <div class="form-section">
+        <h3>Blood Samples</h3>
+
+        {#if isLoading}
+          <p>Loading...</p>
+
+        {:else if bloodSamples.length > 0}
+
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {#each bloodSamples as sample}
+                <tr>
+                  <td>{sample.test_type}</td>
+                  <td>{sample.status}</td>
+                  <td>
+                    {#if sample.status !== 'sent'}
+                      <button
+                        class="submit-button"
+                        on:click={() => advanceSample(sample)}
+                      >
+                        {getAction(sample.status)}
+                      </button>
+                    {:else}
+                      Done
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+
+        {:else}
+          <p>No samples found</p>
+        {/if}
+      </div>
+
+    {/if}
 
   {/if}
-  
 </div>

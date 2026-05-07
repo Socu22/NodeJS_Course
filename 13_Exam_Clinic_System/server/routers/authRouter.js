@@ -179,6 +179,51 @@ router.get('/patients/me', isAuthenticated, authorizeRoles('patient'), (req, res
         });
     }
 });
+router.post(
+  '/blood-samples/me',
+  isAuthenticated,
+  authorizeRoles('patient'),
+  (req, res) => {
+    try {
+      const user = req.session.user;
+
+      if (!user?.id) {
+        return res.status(401).send({
+          errorMessage: 'Not authenticated'
+        });
+      }
+
+      const patient = db.prepare(`
+        SELECT id
+        FROM patients
+        WHERE user_id = ?
+      `).get(user.id);
+
+      if (!patient) {
+        return res.status(404).send({
+          errorMessage: 'Patient not found for this user'
+        });
+      }
+
+      const samples = db.prepare(`
+        SELECT *
+        FROM blood_samples
+        WHERE patient_id = ?
+      `).all(patient.id);
+
+      return res.send({
+        data: samples
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
 
 // ==========================
 // ADMIN: CREATE USER WITH ROLE
