@@ -285,5 +285,92 @@ router.patch(
     }
   }
 );
+router.patch(
+  '/patients/confirm',
+  isAuthenticated,
+  authorizeRoles('admin', 'coordinator', 'nurse'),
+  (req, res) => {
+    try {
+      const { patientId } = req.body;
 
+      if (!patientId) {
+        return res.status(400).send({
+          errorMessage: 'Missing patientId'
+        });
+      }
+
+      const samples = db.prepare(`
+        SELECT status
+        FROM blood_samples
+        WHERE patient_id = ?
+      `).all(patientId);
+
+      if (samples.length === 0) {
+        return res.status(404).send({
+          errorMessage: 'No blood samples found'
+        });
+      }
+
+      const allReady = samples.every(
+        sample => sample.status !== 'collected'
+      );
+
+      if (!allReady) {
+        return res.status(400).send({
+          errorMessage: 'Cannot reset patient until all blood samples are processed'
+        });
+      }
+
+      db.exec('BEGIN');
+
+      const patient = db.prepare(`
+        SELECT room_id
+        FROM patients
+        WHERE id = ?
+      `).get(patientId);
+
+      if (!patient) {
+        db.exec('ROLLBACK');
+
+        return res.status(404).send({
+          errorMessage: 'Patient not found'
+        });
+      }
+
+      if (patient.room_id) {
+        db.prepare(`
+          UPDATE rooms
+          SET status = 'free'
+          WHERE id = ?
+        `).run(patient.room_id);
+      }
+
+      db.prepare(`
+        UPDATE patients
+        SET
+          status = 'waiting',
+          room_id = NULL,
+          nurse_id = NULL
+        WHERE id = ?
+      `).run(patientId);
+
+      db.exec('COMMIT');
+
+      return res.send({
+        message: 'Patient confirmed successfully'
+      });
+
+    } catch (error) {
+      try {
+        db.exec('ROLLBACK');
+      } catch {}
+
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
 export default router;

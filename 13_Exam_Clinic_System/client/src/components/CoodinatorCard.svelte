@@ -32,6 +32,12 @@
         }
 
         activeFormAuth.set('selectRoom');
+        socket = io($BASE_URL_STORE);
+
+        socket.on('patient-confirm', async () => {
+          await loadRooms();
+        });
+
         await loadRooms();
       }
     } catch (err) {
@@ -48,7 +54,8 @@
       const res = await fetchGet('/rooms');
 
       if (res.ok) {
-        rooms = res.data.data;
+        rooms = res.data.data.filter(
+          room => room.status === "free");
       }
     } catch (err) {
       toastr.error('Failed loading rooms');

@@ -77,9 +77,13 @@ io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
   socket.on('coordinator-assigns-room', (data) => {
-    console.log(data);
-    socket.broadcast.emit('room-assignment', data);  });
-
+    //console.log(data);
+    socket.broadcast.emit('room-assignment', data);  
+  });
+  socket.on('nurse-patient-confirm', () => {
+    //console.log(data);
+    socket.broadcast.emit('patient-confirm');  
+  });
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);
   });

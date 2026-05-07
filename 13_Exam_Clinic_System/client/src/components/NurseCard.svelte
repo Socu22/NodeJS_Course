@@ -10,7 +10,6 @@
 
   let patient = null;
   let bloodSamples = [];
-
   let socket;
 
   onMount(async () => {
@@ -37,7 +36,6 @@
 
         await loadAssignedPatient();
       }
-
     } catch (err) {
       toastr.error('Session check failed');
     } finally {
@@ -56,12 +54,12 @@
 
         if (patient) {
           await loadBloodSamples();
+        } else {
+          bloodSamples = [];
         }
       }
-
     } catch (err) {
       toastr.error('Failed loading patient');
-
     } finally {
       isLoading = false;
     }
@@ -76,7 +74,6 @@
       if (res.ok) {
         bloodSamples = res.data.data;
       }
-
     } catch (err) {
       toastr.error('Failed loading samples');
     }
@@ -92,13 +89,44 @@
 
       if (res.ok) {
         toastr.success('Sample updated');
-
         await loadBloodSamples();
       }
-
     } catch (err) {
       toastr.error('Update failed');
+    } finally {
+      isLoading = false;
+    }
+  }
 
+  async function confirmPatient() {
+    try {
+      isLoading = true;
+
+      const res = await fetchPatch('/patients/confirm', {
+        patientId: patient.id
+      });
+
+      if (res.ok) {
+        toastr.success('Patient completed');
+
+        patient = null;
+        bloodSamples = [];
+
+        await loadAssignedPatient();
+
+        socket = io($BASE_URL_STORE)
+
+        socket.emit("nurse-patient-confirm", {
+          succesMessage: "patient has been confirmed"
+        });
+      } else {
+        toastr.error(
+          res.data.errorMessage ||
+          'Cannot confirm patient until all samples are processed'
+        );
+      }
+    } catch (err) {
+      toastr.error('Failed finishing patient');
     } finally {
       isLoading = false;
     }
@@ -109,14 +137,21 @@
     if (status === 'cooling') return 'Send sample';
     return 'Done';
   }
+
+  function canConfirmPatient() {
+    return (
+      bloodSamples.length > 0 &&
+      bloodSamples.every(sample => sample.status !== 'collected')
+    );
+  }
 </script>
 
 <div class="auth-container">
   {#if $user?.role === 'nurse'}
 
-    <!-- NURSE DASHBOARD -->
     {#if $activeFormAuth === 'nurseDashboard'}
 
+      <!-- PATIENT -->
       <div class="form-section">
         <h3>Assigned Patient</h3>
 
@@ -124,7 +159,6 @@
           <p>Loading...</p>
 
         {:else if patient}
-
           <div class="input-group">
             <label>CPR</label>
             <input readonly value={patient.cpr} />
@@ -153,7 +187,6 @@
           <p>Loading...</p>
 
         {:else if bloodSamples.length > 0}
-
           <table>
             <thead>
               <tr>
@@ -185,12 +218,19 @@
             </tbody>
           </table>
 
+          <button
+            class="submit-button"
+            disabled={!canConfirmPatient()}
+            on:click={confirmPatient}
+          >
+            Finish Patient
+          </button>
+
         {:else}
           <p>No samples found</p>
         {/if}
       </div>
 
     {/if}
-
   {/if}
 </div>

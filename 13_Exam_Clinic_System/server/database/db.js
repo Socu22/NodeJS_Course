@@ -29,7 +29,7 @@ async function initializeDatabase() {
         role TEXT DEFAULT 'user',
         reset_token TEXT,
         reset_token_expiry INTEGER,
-        created_at INTEGER DEFAULT (strftime('%s','now'))
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -61,7 +61,7 @@ async function initializeDatabase() {
         patient_id INTEGER NOT NULL,
         test_type TEXT CHECK (test_type IN ('blood_count', 'glucose', 'cholesterol', 'calc')),
         status TEXT CHECK(status IN ('collected','cooling','sent')) DEFAULT 'collected',
-        created_at INTEGER DEFAULT (strftime('%s','now')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
       );
     `);
