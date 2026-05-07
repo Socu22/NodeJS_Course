@@ -8,11 +8,12 @@
   import PatientCard from './components/PatientCard.svelte';
 
   import { user } from './store/userStore.js';
+    import WaitingScreen from './components/WaitingScreen.svelte';
 </script>
 
 <Router>
   <nav>
-    <Link to="/">home</Link>
+    <Link to="/waitingscreen">home</Link>
 
     {#if $user?.role === 'admin'}
       <Link to="/admin">admin</Link>
@@ -34,6 +35,7 @@
   </nav>
 
   <div>
+    <Route path="/waitingscreen"><WaitingScreen /></Route>
     <Route path="/auth"><AuthCard /></Route>
     <Route path="/admin"><AdminCard /></Route>
     <Route path="/coordinator"><CoordinatorCard /></Route>

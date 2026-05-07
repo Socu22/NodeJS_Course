@@ -5,7 +5,7 @@ import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 
 const router = Router();
 
-router.get('/rooms', isAuthenticated, authorizeRoles("admin", "coordinator","patient" ) ,(req, res) => {
+router.get('/rooms' ,(req, res) => {
   try {
     const rooms = db.prepare(`
       SELECT * FROM rooms

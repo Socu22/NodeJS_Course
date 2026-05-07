@@ -1,3 +1,5 @@
+/* ---------------- AUTH ONLY ---------------- */
+
 .auth-container {
   max-width: 360px;
   margin: 3rem auto;
@@ -8,6 +10,30 @@
   background: var(--bg);
   border: 1px solid var(--border);
 }
+
+
+/* ---------------- PAGE / DASHBOARD ---------------- */
+
+.page-container {
+  max-width: 900px;
+  margin: 3rem auto;
+  font-family: var(--sans);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.waiting-screen-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+
+/* ---------------- SHARED COMPONENTS ---------------- */
 
 .form-section {
   padding: 2rem;
@@ -50,6 +76,7 @@ select {
   border: 1px solid var(--border);
   background: var(--code-bg);
   color: var(--text-h);
+  box-sizing: border-box;
 }
 
 input:focus,
