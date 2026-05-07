@@ -89,6 +89,7 @@
 
       if (res.ok) {
         toastr.success('Sample updated');
+        socket.emit('nurse-patient-blood-sample-change')
         await loadBloodSamples();
       }
     } catch (err) {

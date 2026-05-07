@@ -84,6 +84,10 @@ io.on('connection', (socket) => {
     //console.log(data);
     socket.broadcast.emit('patient-confirm');  
   });
+   socket.on('nurse-patient-blood-sample-change', () => {
+    //console.log(data);
+    socket.broadcast.emit('patient-blood-sample-change');  
+  });
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);
   });

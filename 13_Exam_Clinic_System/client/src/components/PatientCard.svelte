@@ -26,6 +26,12 @@
         toastr.success(`Assigned to ${assignedRoom.roomName}`);
       }
     });
+    socket.on('patient-confirm', async () => {
+          await loadPatient();
+        });
+    socket.on('patient-blood-sample-change', async () => {
+          await loadBloodSamples();
+        });
 
     await loadPatient();
     await loadBloodSamples();

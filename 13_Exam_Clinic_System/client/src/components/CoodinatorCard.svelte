@@ -103,8 +103,6 @@
 
         selectedPatient = patient;
         await loadRooms();
-
-        socket = io($BASE_URL_STORE)
         
 
         socket.emit("coordinator-assigns-room", {
@@ -201,7 +199,7 @@
             <tbody>
               {#each patients as patient}
                 <tr>
-                  <td>{patient.cpr_encrypted}</td>
+                  <td>{patient.cpr_decrypted}</td>
 
                   <td>{patient.status}</td>
                   <td>

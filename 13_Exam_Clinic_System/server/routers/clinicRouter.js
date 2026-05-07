@@ -39,25 +39,47 @@ router.get('/rooms/:id', isAuthenticated, authorizeRoles("admin", "coordinator")
 });
 
 
-router.get('/patients', isAuthenticated, authorizeRoles("admin", "coordinator"), (req, res) => {
-  try {
-    const patients = db.prepare(`
-      SELECT * FROM patients
-    `).all();
+router.get(
+  '/patients',
+  isAuthenticated,
+  authorizeRoles('admin', 'coordinator'),
+  (req, res) => {
+    try {
+      const patients = db.prepare(`
+        SELECT
+          p.id,
+          p.status,
+          p.user_id,
+          p.room_id,
+          p.nurse_id,
+          p.cpr_encrypted,
 
-    const decryptedPatients = patients.map((patient) => ({
-      ...patient,
-      cpr_encrypted: decryptCPR(patient.cpr_encrypted)
-    }));
+          u.username,
+          u.email,
+          u.created_at
+        FROM patients p
+        LEFT JOIN users u
+          ON p.user_id = u.id
+      `).all();
 
-    return res.send({ data: decryptedPatients });
+      const decryptedPatients = patients.map((patient) => ({
+        ...patient,
+        cpr_decrypted: decryptCPR(patient.cpr_encrypted)
+      }));
 
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send({ errorMessage: 'Failed to fetch patients' });
+      return res.send({
+        data: decryptedPatients
+      });
+
+    } catch (err) {
+      console.error(err);
+
+      return res.status(500).send({
+        errorMessage: 'Failed to fetch patients'
+      });
+    }
   }
-});
-
+);
 
 
 router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
@@ -288,7 +310,7 @@ router.patch(
 router.patch(
   '/patients/confirm',
   isAuthenticated,
-  authorizeRoles('admin', 'coordinator', 'nurse'),
+  authorizeRoles('admin', 'nurse'),
   (req, res) => {
     try {
       const { patientId } = req.body;
