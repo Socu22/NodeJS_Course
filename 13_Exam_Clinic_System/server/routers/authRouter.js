@@ -442,29 +442,31 @@ router.post('/auth/resetpassword', async (req, res) => {
 // LOGOUT
 // ==========================
 router.post('/auth/logout', (req, res) => {
-    try {
-        const user = req.session.user;
+  try {
+    const user = req.session.user;
 
-        if (user?.role === 'patient') {
-            db.prepare(`
-                UPDATE patients
-                SET status = 'registered',
-                    room_id = NULL
-                WHERE user_id = ?
-                AND status = 'waiting'
-            `).run(user.id);
-        }
-
-        req.session.destroy(() => {
-            res.send({ message: "Logged out" });
-        });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).send({
-            errorMessage: "Logout failed"
-        });
+    if (user?.role === 'patient') {
+      db.prepare(`
+        UPDATE patients
+        SET
+          status = 'registered',
+          room_id = NULL,
+          nurse_id = NULL
+        WHERE user_id = ?
+        AND status IN ('waiting', 'registered', 'in_room')
+      `).run(user.id);
     }
+
+    req.session.destroy(() => {
+      res.send({ message: 'Logged out' });
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({
+      errorMessage: 'Logout failed'
+    });
+  }
 });
 
 

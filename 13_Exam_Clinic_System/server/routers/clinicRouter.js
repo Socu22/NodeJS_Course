@@ -84,8 +84,8 @@ router.get(
 
 router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
   try {
-    const patientId = Number(req.body.patientId);
-    const roomId = Number(req.body.roomId);
+    const patientId = req.body.patientId;
+    const roomId = req.body.roomId;
 
     if (!patientId || !roomId) {
       return res.status(400).send({
@@ -328,20 +328,18 @@ router.patch(
       `).all(patientId);
 
       if (samples.length === 0) {
-        return res.status(404).send({
-          errorMessage: 'No blood samples found'
-        });
-      }
+        const allReady = samples.every(
+          sample => sample.status !== 'collected'
+        );
+  
+        if (!allReady) {
+          return res.status(400).send({
+            errorMessage: 'Cannot reset patient until all blood samples are processed'
+          });
+        }
 
-      const allReady = samples.every(
-        sample => sample.status !== 'collected'
-      );
-
-      if (!allReady) {
-        return res.status(400).send({
-          errorMessage: 'Cannot reset patient until all blood samples are processed'
-        });
       }
+      
 
       db.exec('BEGIN');
 

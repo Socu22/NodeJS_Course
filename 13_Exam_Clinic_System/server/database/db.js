@@ -46,7 +46,7 @@ async function initializeDatabase() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE NOT NULL,
         cpr_encrypted TEXT UNIQUE NOT NULL,
-        status TEXT CHECK (status IN ('registered','waiting','in_room','done')) DEFAULT 'registered',
+        status TEXT CHECK (status IN ('registered','waiting','in_room')) DEFAULT 'registered',
         room_id INTEGER,
         nurse_id INTEGER,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

@@ -140,11 +140,10 @@
   }
 
   function canConfirmPatient() {
-    return (
-      bloodSamples.length > 0 &&
-      bloodSamples.every(sample => sample.status !== 'collected')
-    );
-  }
+  return bloodSamples.every(
+    sample => sample.status !== 'collected'
+  );
+}
 </script>
 
 <div class="auth-container">
@@ -187,7 +186,7 @@
         {#if isLoading}
           <p>Loading...</p>
 
-        {:else if bloodSamples.length > 0}
+        {:else if bloodSamples.length > 0 || bloodSamples.length === 0 && patient !==null}
           <table>
             <thead>
               <tr>
