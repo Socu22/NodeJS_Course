@@ -1,5 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
-const db = new DatabaseSync('clinicDatabase.db'); // sqlite3 clinicDatabase.db
+import { resetInactivePatientsJob } from '../jobs/patientsJob.js';
+
+const db = new DatabaseSync('clinicDatabase.db');
 
 const deleteMode = process.argv.includes("--delete");
 
@@ -28,8 +30,7 @@ async function initializeDatabase() {
         email TEXT UNIQUE,
         role TEXT DEFAULT 'user',
         reset_token TEXT,
-        reset_token_expiry INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        reset_token_expiry INTEGER
       );
     `);
 
@@ -49,6 +50,7 @@ async function initializeDatabase() {
         status TEXT CHECK (status IN ('registered','waiting','in_room')) DEFAULT 'registered',
         room_id INTEGER,
         nurse_id INTEGER,
+        last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL,
         FOREIGN KEY (nurse_id) REFERENCES users(id) ON DELETE SET NULL
@@ -61,7 +63,6 @@ async function initializeDatabase() {
         patient_id INTEGER NOT NULL,
         test_type TEXT CHECK (test_type IN ('blood_count', 'glucose', 'cholesterol', 'calc')),
         status TEXT CHECK(status IN ('collected','cooling','sent')) DEFAULT 'collected',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
       );
     `);
@@ -90,21 +91,41 @@ async function initializeDatabase() {
         SELECT id FROM users WHERE role = 'patient' LIMIT 1
       `).get();
 
+      const demoUser = db.prepare(`
+        SELECT id FROM users WHERE role = 'demo' LIMIT 1
+      `).get();
+
       const insertPatient = db.prepare(`
         INSERT INTO patients (user_id, cpr_encrypted, status, room_id)
         VALUES (?, ?, ?, ?);
       `);
 
+      const insertExtraPatient = db.prepare(`
+        INSERT INTO patients (user_id, cpr_encrypted, status, room_id, last_activity)
+        VALUES (?, ?, ?, ?, ?);
+      `);
+
+      // Normal patient (won't trigger reset)
       insertPatient.run(
         patientUser.id,
         encryptCPR('120390-1234'),
         'registered',
         null
       );
+      let minutes = 5;
+      const twoHoursAgo = new Date(Date.now() - ((60+minutes)  * 60 * 1000) )
+        .toISOString()
+        .slice(0, 19)
+        .replace('T', ' ');
 
-      const patientRecord = db.prepare(`
-        SELECT id FROM patients WHERE user_id = ?
-      `).get(patientUser.id);
+      // Extra patient (WILL trigger reset job)
+      insertExtraPatient.run(
+        demoUser.id,
+        encryptCPR('010190-9999'),
+        'in_room',
+        null,
+        twoHoursAgo
+      );
 
       const insertSample = db.prepare(`
         INSERT INTO blood_samples (patient_id, test_type, status)
@@ -121,7 +142,6 @@ async function initializeDatabase() {
         insertSample.run(p.id, 'cholesterol', 'sent');
       }
     }
-
     return db;
 
   } catch (err) {
@@ -131,7 +151,15 @@ async function initializeDatabase() {
 }
 
 await initializeDatabase()
-  .then(() => console.log('Database initialized successfully.'))
+  .then(() => {
+    console.log('Database initialized successfully.');
+
+    if (!deleteMode) {
+      setInterval(() => {
+        resetInactivePatientsJob();
+      }, 60 * 1000);
+    }
+  })
   .catch(err => console.error('Failed to initialize database:', err));
 
 export default db;

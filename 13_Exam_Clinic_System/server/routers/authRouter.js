@@ -5,6 +5,7 @@ import db from '../database/db.js';
 import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
 import { encryptCPR,decryptCPR } from '../utils/encryption.js';
 import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
+import { updatePatientActivity } from '../jobs/patientsJob.js';
 
 const router = Router();
 
@@ -179,6 +180,33 @@ router.get('/patients/me', isAuthenticated, authorizeRoles('patient'), (req, res
         });
     }
 });
+router.patch(
+  '/patients/activity',
+  isAuthenticated,
+  authorizeRoles('patient'),
+  (req, res) => {
+    try {
+      const userId = req.session.user.id;
+
+      db.prepare(`
+        UPDATE patients
+        SET last_activity = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).run(userId);
+
+      return res.send({
+        successMessage: 'Patient activity updated'
+      });
+
+    } catch (err) {
+      console.error(err);
+
+      return res.status(500).send({
+        errorMessage: 'Failed to update patient activity'
+      });
+    }
+  }
+);
 router.post(
   '/blood-samples/me',
   isAuthenticated,

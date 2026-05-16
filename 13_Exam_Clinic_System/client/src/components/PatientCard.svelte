@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchGet, fetchPost } from '../util/fetchUtil.js';
+  import { fetchGet, fetchPost, fetchPatch } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormUser } from '../store/userStore.js';
   import io from 'socket.io-client';
@@ -12,8 +12,30 @@
 
   let isLoading = false;
   let socket;
+  let activityInterval;
 
-  onMount(async () => {
+  onMount(() => {
+    init();
+
+    // heartbeat: keep patient active while page is open
+    activityInterval = setInterval(async () => {
+      try {
+        await fetchPatch('/patients/activity');
+      } catch (err) {
+        console.error('Failed updating activity');
+      }
+    }, 30000);
+
+    return () => {
+      socket?.disconnect();
+
+      if (activityInterval) {
+        clearInterval(activityInterval);
+      }
+    };
+  });
+
+  async function init() {
     $activeFormUser = 'patientAndRoomAssignment';
 
     socket = io(BASE_URL);
@@ -26,16 +48,18 @@
         toastr.success(`Assigned to ${assignedRoom.roomName}`);
       }
     });
+
     socket.on('patient-confirm', async () => {
-          await loadPatient();
-        });
+      await loadPatient();
+    });
+
     socket.on('patient-blood-sample-change', async () => {
-          await loadBloodSamples();
-        });
+      await loadBloodSamples();
+    });
 
     await loadPatient();
     await loadBloodSamples();
-  });
+  }
 
   async function loadPatient() {
     try {
@@ -46,13 +70,11 @@
       if (res.ok) {
         patient = res.data.data;
 
-        // optional fallback room display
         if (patient.roomName) {
           assignedRoom = {
             roomName: patient.roomName
           };
         }
-
       } else {
         toastr.error(res.data.errorMessage || 'Failed loading patient');
       }
@@ -81,7 +103,6 @@
 </script>
 
 <div class="auth-container">
-
   {#if $activeFormUser === 'patientAndRoomAssignment' && $user?.role === 'patient'}
 
     <div class="form-section">
@@ -91,8 +112,6 @@
         <p>Loading...</p>
 
       {:else if patient}
-
-        <!-- PATIENT INFO -->
         <div class="input-group">
           <label>CPR</label>
           <input readonly value={patient.cpr} />
@@ -103,7 +122,6 @@
           <input readonly value={assignedRoom?.roomName ?? 'Not assigned'} />
         </div>
 
-        <!-- BLOOD SAMPLES -->
         <div class="form-section">
           <h3>Blood Samples</h3>
 
@@ -133,9 +151,7 @@
       {:else}
         <p>No patient found</p>
       {/if}
-
     </div>
 
   {/if}
-
 </div>
