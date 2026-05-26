@@ -47,7 +47,7 @@
     try {
       isLoading = true;
 
-      const res = await fetchGet('/assign-patient');
+      const res = await fetchPost('/patients/assignment');
 
       if (res.ok) {
         patient = res.data.data;
@@ -67,10 +67,8 @@
 
   async function loadBloodSamples() {
     try {
-      const res = await fetchPost('/blood-samples', {
-        patientId: patient.id
-      });
-
+      const res = await fetchGet(`/patients/${patient.id}/blood-samples`);
+     
       if (res.ok) {
         bloodSamples = res.data.data;
       }
@@ -82,10 +80,10 @@
   async function advanceSample(sample) {
     try {
       isLoading = true;
+      
+      const res = await fetchPatch(`/blood-samples/${sample.id}`);
 
-      const res = await fetchPatch('/blood-samples', {
-        sampleId: sample.id
-      });
+      
 
       if (res.ok) {
         toastr.success('Sample updated');
@@ -103,9 +101,7 @@
     try {
       isLoading = true;
 
-      const res = await fetchPatch('/patients/confirm', {
-        patientId: patient.id
-      });
+      const res = await fetchPost(`/patients/${patient.id}/confirm`);
 
       if (res.ok) {
         toastr.success('Patient completed');

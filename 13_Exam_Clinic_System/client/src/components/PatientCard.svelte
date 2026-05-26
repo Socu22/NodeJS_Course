@@ -88,7 +88,7 @@
 
   async function loadBloodSamples() {
     try {
-      const res = await fetchPost('/blood-samples/me');
+      const res = await fetchGet('/blood-samples/me');
 
       if (res.ok) {
         bloodSamples = res.data.data;

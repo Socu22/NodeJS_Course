@@ -207,7 +207,7 @@ router.patch(
     }
   }
 );
-router.post(
+router.get(
   '/blood-samples/me',
   isAuthenticated,
   authorizeRoles('patient'),

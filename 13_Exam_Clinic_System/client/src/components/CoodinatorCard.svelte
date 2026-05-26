@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchGet, fetchPost } from '../util/fetchUtil.js';
+  import { fetchGet, fetchPatch, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormAuth } from '../store/userStore.js';
   import io from 'socket.io-client';
@@ -93,10 +93,8 @@
     try {
       isLoading = true;
 
-      const res = await fetchPost('/assign-room', {
-        patientId: patient.id,
-        roomId: selectedRoom.id
-      });
+      const res = await fetchPatch(`/patients/${patient.id}/room`, {
+        roomId: selectedRoom.id});
 
       if (res.ok) {
         toastr.success('Patient assigned successfully');

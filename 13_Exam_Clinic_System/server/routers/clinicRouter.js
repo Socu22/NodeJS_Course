@@ -46,22 +46,20 @@ router.get(
   (req, res) => {
     try {
       const patients = db.prepare(`
-        SELECT
-          p.id,
-          p.status,
-          p.user_id,
-          p.room_id,
-          p.nurse_id,
-          p.cpr_encrypted,
-
-          u.username,
-          u.email,
-          u.created_at
-        FROM patients p
-        LEFT JOIN users u
-          ON p.user_id = u.id
-      `).all();
-
+          SELECT
+            p.id,
+            p.status,
+            p.user_id,
+            p.room_id,
+            p.nurse_id,
+            p.cpr_encrypted,
+            u.username,
+            u.email
+          FROM patients p
+          LEFT JOIN users u
+            ON p.user_id = u.id
+        `).all();
+     
       const decryptedPatients = patients.map((patient) => ({
         ...patient,
         cpr_decrypted: decryptCPR(patient.cpr_encrypted)
@@ -81,7 +79,7 @@ router.get(
   }
 );
 
-
+/*
 router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
   try {
     const patientId = req.body.patientId;
@@ -151,6 +149,70 @@ router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator
     });
   }
 });
+*/
+router.patch(
+  '/patients/:id/room',
+  isAuthenticated,
+  authorizeRoles('admin', 'coordinator'),
+  (req, res) => {
+    try {
+      const patientId = req.params.id;
+      const { roomId } = req.body;
+
+      if (!roomId) {
+        return res.status(400).send({
+          errorMessage: 'roomId required'
+        });
+      }
+
+      const room = db.prepare(`
+        SELECT * FROM rooms WHERE id = ?
+      `).get(roomId);
+
+      if (!room) {
+        return res.status(404).send({
+          errorMessage: 'Room not found'
+        });
+      }
+
+      if (room.status === 'occupied') {
+        return res.status(400).send({
+          errorMessage: 'Room already occupied'
+        });
+      }
+
+      db.exec('BEGIN');
+
+      db.prepare(`
+        UPDATE patients
+        SET room_id = ?, status = 'in_room'
+        WHERE id = ?
+      `).run(roomId, patientId);
+
+      db.prepare(`
+        UPDATE rooms
+        SET status = 'occupied'
+        WHERE id = ?
+      `).run(roomId);
+
+      db.exec('COMMIT');
+
+      return res.send({
+        successMessage: 'Patient assigned successfully'
+      });
+
+    } catch (err) {
+      try { db.exec('ROLLBACK'); } catch {}
+
+      console.error(err);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+/*
 router.get(
   '/assign-patient',
   isAuthenticated,
@@ -220,7 +282,76 @@ router.get(
     }
   }
 );
+*/
+router.post(
+  '/patients/assignment',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const nurseId = req.session.user.id;
 
+      db.exec('BEGIN IMMEDIATE');
+
+      let patient = db.prepare(`
+        SELECT p.*, r.name AS roomName
+        FROM patients p
+        LEFT JOIN rooms r ON p.room_id = r.id
+        WHERE p.nurse_id = ?
+        AND p.status = 'in_room'
+        LIMIT 1
+      `).get(nurseId);
+
+      if (!patient) {
+        const candidate = db.prepare(`
+          SELECT id
+          FROM patients
+          WHERE status = 'in_room'
+          AND nurse_id IS NULL
+          ORDER BY id
+          LIMIT 1
+        `).get();
+
+        if (candidate) {
+          db.prepare(`
+            UPDATE patients
+            SET nurse_id = ?
+            WHERE id = ?
+            AND nurse_id IS NULL
+          `).run(nurseId, candidate.id);
+
+          patient = db.prepare(`
+            SELECT p.*, r.name AS roomName
+            FROM patients p
+            LEFT JOIN rooms r ON p.room_id = r.id
+            WHERE p.id = ?
+          `).get(candidate.id);
+        }
+      }
+
+      db.exec('COMMIT');
+
+      if (!patient) {
+        return res.send({ data: null });
+      }
+
+      patient.cpr = decryptCPR(patient.cpr_encrypted);
+      delete patient.cpr_encrypted;
+
+      return res.send({ data: patient });
+
+    } catch (err) {
+      try { db.exec('ROLLBACK'); } catch {}
+
+      console.error(err);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+/*
 router.post(
   '/blood-samples',
   isAuthenticated,
@@ -254,6 +385,34 @@ router.post(
     }
   }
 );
+*/
+router.get(
+  '/patients/:id/blood-samples',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const patientId = req.params.id;
+
+      const samples = db.prepare(`
+        SELECT *
+        FROM blood_samples
+        WHERE patient_id = ?
+      `).all(patientId);
+
+      return res.send({ data: samples });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+
+/*
 router.patch(
   '/blood-samples',
   isAuthenticated,
@@ -307,13 +466,58 @@ router.patch(
     }
   }
 );
+*/
 router.patch(
-  '/patients/confirm',
+  '/blood-samples/:id',
+  isAuthenticated,
+  authorizeRoles('nurse'),
+  (req, res) => {
+    try {
+      const sampleId = req.params.id;
+
+      const sample = db.prepare(`
+        SELECT *
+        FROM blood_samples
+        WHERE id = ?
+      `).get(sampleId);
+
+      if (!sample) {
+        return res.status(404).send({
+          errorMessage: 'Sample not found'
+        });
+      }
+
+      let nextStatus = sample.status;
+
+      if (sample.status === 'collected') nextStatus = 'cooling';
+      else if (sample.status === 'cooling') nextStatus = 'sent';
+
+      db.prepare(`
+        UPDATE blood_samples
+        SET status = ?
+        WHERE id = ?
+      `).run(nextStatus, sampleId);
+
+      return res.send({
+        message: `Sample updated to ${nextStatus}`
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).send({
+        errorMessage: 'Server error'
+      });
+    }
+  }
+);
+router.post(
+  '/patients/:id/confirm',
   isAuthenticated,
   authorizeRoles('admin', 'nurse'),
   (req, res) => {
     try {
-      const { patientId } = req.body;
+      const patientId  =  req.params.id;
 
       if (!patientId) {
         return res.status(400).send({

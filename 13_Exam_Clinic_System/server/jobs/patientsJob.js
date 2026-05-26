@@ -1,6 +1,6 @@
 import db from '../database/db.js';
 
-export function resetInactivePatientsJob(timeoutMinutes = 1) {
+export function resetInactivePatientsJob(timeoutMinutes = 60) {
   try {
     db.exec('BEGIN');
 
