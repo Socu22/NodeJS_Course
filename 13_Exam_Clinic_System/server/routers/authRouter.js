@@ -8,25 +8,49 @@ import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 import { updatePatientActivity } from '../jobs/patientsJob.js';
 
 const router = Router();
-
 /*
-This API follows a hybrid architecture:
+This API follows a hybrid REST + session-based architecture designed for a role-driven healthcare system.
+
  *
  * 1. AUTHENTICATION (/auth/*)
  *    - Handles login, signup, logout
- *    - Handles password recovery flow
- *    - Establishes and destroys session state
+ *    - Implements secure password recovery (forgot/reset password flow)
+ *    - Establishes session-based authentication via req.session.user
+ *    - Uses bcrypt for password hashing and crypto-based reset tokens
  *
- * 2. USER RESOURCE (/users/*)
+ * 2. USER RESOURCE (/users/*, /users/me)
  *    - Represents user data as a RESTful resource
- *    - "me" endpoints operate on the currently authenticated user
- *    - No user ID is trusted from the client for self-actions
+ *    - "me" endpoints operate strictly on the authenticated session user
+ *    - No user ID from client input is trusted for self-service operations
+ *    - Supports profile updates (username, email)
  *
- * 3. ADMIN OPERATIONS (/users, /admin/*)
+ * 3. PATIENT RESOURCE (/patients/*)
+ *    - Extends user functionality for patients only
+ *    - Requires authentication + role-based authorization
+ *    - Handles patient-specific data (CPR, room assignment, activity tracking)
+ *    - Includes endpoints for:
+ *        - /patients/me (patient profile + room info)
+ *        - /patients/activity (heartbeat-style activity updates)
+ *        - /blood-samples/me (patient-linked medical data)
+ *
+ * 4. ADMIN OPERATIONS (/users, /admin-like behavior)
  *    - Restricted to users with role: "admin"
  *    - Allows creation of users with explicit roles
- *    - Enforced via authorizeRoles middleware
-*/
+ *    - Can optionally create linked patient records (via CPR)
+ *    - Enforced via authorizeRoles('admin') middleware
+ *
+ * 5. SECURITY MODEL
+ *    - Session-based authentication (no JWT)
+ *    - Role-based access control (admin, patient, etc.)
+ *    - CPR data is encrypted at rest and decrypted only when needed
+ *    - Password reset uses hashed tokens with short expiry windows
+ *    - SQL transactions (BEGIN IMMEDIATE / COMMIT / ROLLBACK) ensure consistency
+ *
+ * 6. SYSTEM BEHAVIOR
+ *    - Patient status is automatically updated on login/logout
+ *    - Logout resets patient state (room, nurse, status)
+ *    - Activity tracking is used for patient presence monitoring
+ */
 
 
 

@@ -1,5 +1,6 @@
 import { BASE_URL } from "../store/urlStore";
-
+import { showLoading, hideLoading, showError } from '../store/loadingStore';
+import toastr from 'toastr';
 
 // ---- TRIM HELPERS ----
 
@@ -21,13 +22,11 @@ function trimBody(body) {
     return cleaned;
 }
 
-import { showLoading, hideLoading, showError } from '../store/loadingStore';
-import toastr from 'toastr';
 
 // ---- CORE REQUEST ----
 
 async function request(endpoint, options = {}) {
-    showLoading();
+    showLoading(); 
     try {
         const trimmedBody = options.body
             ? JSON.stringify(trimBody(JSON.parse(options.body)))
@@ -106,6 +105,3 @@ export function fetchDelete(endpoint) {
     });
 }
 
-export function fetchMe() {
-    return fetchGet("/users/me");
-}

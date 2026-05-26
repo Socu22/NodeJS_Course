@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
 
   // Coordinator assigns patient to room
   socket.on('coordinator-assigns-room', (data) => {
-    console.log('Room assignment:', data);
+    if (process.env.NODE_ENV === "test") console.log('Room assignment:', data);
     // Notify the specific room
     if (data.roomId) {
       io.to(`room-${data.roomId}`).emit('room-assignment', data);
@@ -132,20 +132,14 @@ io.on('connection', (socket) => {
 
   // Nurse confirms patient
   socket.on('nurse-patient-confirm', (data) => {
-    console.log('Patient confirmed:', data);
+    if (process.env.NODE_ENV === "test") console.log('Patient confirmed:', data);
     socket.broadcast.emit('patient-confirm', data);
   });
 
   // Blood sample status change
   socket.on('nurse-patient-blood-sample-change', (data) => {
-    console.log('Blood sample status changed:', data);
+    if (process.env.NODE_ENV === "test") console.log('Blood sample status changed:', data);
     socket.broadcast.emit('patient-blood-sample-change', data);
-  });
-
-  // Patient activity update
-  socket.on('patient-activity', (userId) => {
-    console.log('Patient activity:', userId);
-    socket.broadcast.emit('patient-activity-update', { userId });
   });
 
   socket.on('disconnect', () => {

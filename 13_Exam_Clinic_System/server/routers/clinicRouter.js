@@ -5,6 +5,59 @@ import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
 
 const router = Router();
 
+ /*
+This API follows a role-based healthcare management architecture built on REST principles with strong authorization boundaries and transactional consistency.
+
+ *
+ * 1. ROOM RESOURCE (/rooms/*)
+ *    - Public endpoint for basic room listing
+ *    - Protected room details require authentication + elevated roles
+ *    - Rooms represent physical capacity and occupancy state
+ *
+ * 2. PATIENT RESOURCE (/patients/*)
+ *    - Core domain entity representing hospital patients
+ *    - Supports admin/coordinator access for full patient overview
+ *    - Includes encrypted CPR data (decrypted only server-side when needed)
+ *    - Supports assignment to rooms and nurses
+ *
+ *    Key patient operations:
+ *      - /patients (admin/coordinator): full patient listing
+ *      - /patients/:id/room (admin/coordinator): assign patient to room
+ *      - /patients/:id/confirm (admin/nurse): reset patient after treatment cycle
+ *
+ * 3. NURSE WORKFLOW (/patients/assignment, /patients/:id/blood-samples)
+ *    - Nurse-specific workload distribution system
+ *    - Implements atomic patient assignment using SQL transactions
+ *    - Ensures only one nurse can claim a patient at a time
+ *    - Provides access to patient blood samples for medical handling
+ *
+ * 4. BLOOD SAMPLE RESOURCE (/blood-samples/*)
+ *    - Tracks lifecycle of medical samples (collected → cooling → sent)
+ *    - State transitions are strictly sequential and controlled
+ *    - Only nurses can update sample status
+ *
+ * 5. SECURITY MODEL
+ *    - Session-based authentication (req.session.user)
+ *    - Role-based authorization:
+ *        - admin: full system access + statistics + patient management
+ *        - coordinator: patient/room management
+ *        - nurse: patient assignment + medical workflows
+ *    - Sensitive fields (CPR) are encrypted at rest and decrypted only when needed
+ *
+ * 6. TRANSACTION SAFETY
+ *    - Critical operations use SQL transactions (BEGIN / COMMIT / ROLLBACK)
+ *    - Prevents race conditions in:
+ *        - room assignment
+ *        - nurse patient claiming
+ *        - patient state resets
+ *
+ * 7. SYSTEM BEHAVIOR
+ *    - Patient lifecycle is tightly controlled through status transitions:
+ *        registered → waiting → in_room → (reset to waiting)
+ *    - Room occupancy is synchronized with patient assignment
+ *    - Blood samples follow strict sequential processing pipeline
+ */
+
 router.get('/rooms' ,(req, res) => {
   try {
     const rooms = db.prepare(`
@@ -79,77 +132,7 @@ router.get(
   }
 );
 
-/*
-router.post('/assign-room', isAuthenticated, authorizeRoles("admin","coordinator"),(req, res) => {
-  try {
-    const patientId = req.body.patientId;
-    const roomId = req.body.roomId;
 
-    if (!patientId || !roomId) {
-      return res.status(400).send({
-        errorMessage: 'patientId and roomId required'
-      });
-    }
-
-    const room = db.prepare(`
-      SELECT * FROM rooms WHERE id = ?
-    `).get(roomId);
-
-    if (!room) {
-      return res.status(404).send({
-        errorMessage: 'Room not found'
-      });
-    }
-
-    if (room.status === 'occupied') {
-      return res.status(400).send({
-        errorMessage: 'Room already occupied'
-      });
-    }
-
-    const patient = db.prepare(`
-      SELECT * FROM patients WHERE id = ?
-    `).get(patientId);
-
-    if (!patient) {
-      return res.status(404).send({
-        errorMessage: 'Patient not found'
-      });
-    }
-
-    db.exec('BEGIN');
-
-    db.prepare(`
-      UPDATE patients
-      SET room_id = ?, status = 'in_room'
-      WHERE id = ?
-    `).run(roomId, patientId);
-
-    db.prepare(`
-      UPDATE rooms
-      SET status = 'occupied'
-      WHERE id = ?
-    `).run(roomId);
-
-    db.exec('COMMIT');
-
-    return res.send({
-      successMessage: 'Patient assigned successfully'
-    });
-
-  } catch (err) {
-    try {
-      db.exec('ROLLBACK');
-    } catch {}
-
-    console.error(err);
-
-    return res.status(500).send({
-      errorMessage: err.message
-    });
-  }
-});
-*/
 router.patch(
   '/patients/:id/room',
   isAuthenticated,
@@ -212,77 +195,7 @@ router.patch(
     }
   }
 );
-/*
-router.get(
-  '/assign-patient',
-  isAuthenticated,
-  authorizeRoles('nurse'),
-  (req, res) => {
-    try {
-      const nurseId = req.session.user.id;
 
-      db.exec('BEGIN IMMEDIATE');
-
-      // 1. check already assigned patient
-      let patient = db.prepare(`
-        SELECT p.*, r.name AS roomName
-        FROM patients p
-        LEFT JOIN rooms r ON p.room_id = r.id
-        WHERE p.nurse_id = ?
-        AND p.status = 'in_room'
-        LIMIT 1
-      `).get(nurseId);
-
-      // 2. if none, CLAIM one atomically
-      if (!patient) {
-        const candidate = db.prepare(`
-          SELECT id
-          FROM patients
-          WHERE status = 'in_room'
-          AND nurse_id IS NULL
-          ORDER BY id
-          LIMIT 1
-        `).get();
-
-        if (candidate) {
-          db.prepare(`
-            UPDATE patients
-            SET nurse_id = ?
-            WHERE id = ?
-            AND nurse_id IS NULL
-          `).run(nurseId, candidate.id);
-
-          patient = db.prepare(`
-            SELECT p.*, r.name AS roomName
-            FROM patients p
-            LEFT JOIN rooms r ON p.room_id = r.id
-            WHERE p.id = ?
-          `).get(candidate.id);
-        }
-      }
-
-      db.exec('COMMIT');
-
-      if (!patient) {
-        return res.send({ data: null });
-      }
-
-      patient.cpr = decryptCPR(patient.cpr_encrypted);
-      delete patient.cpr_encrypted;
-
-      return res.send({ data: patient });
-
-    } catch (err) {
-      try { db.exec('ROLLBACK'); } catch {}
-
-      console.error(err);
-      return res.status(500).send({
-        errorMessage: 'Server error'
-      });
-    }
-  }
-);
-*/
 router.post(
   '/patients/assignment',
   isAuthenticated,
@@ -351,41 +264,7 @@ router.post(
     }
   }
 );
-/*
-router.post(
-  '/blood-samples',
-  isAuthenticated,
-  authorizeRoles('nurse'),
-  (req, res) => {
-    try {
-      const { patientId } = req.body;
 
-      if (!patientId) {
-        return res.status(400).send({
-          errorMessage: 'Missing patientId'
-        });
-      }
-
-      const samples = db.prepare(`
-        SELECT *
-        FROM blood_samples
-        WHERE patient_id = ?
-      `).all(patientId);
-
-      return res.send({
-        data: samples
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      return res.status(500).send({
-        errorMessage: 'Server error'
-      });
-    }
-  }
-);
-*/
 router.get(
   '/patients/:id/blood-samples',
   isAuthenticated,
@@ -412,61 +291,6 @@ router.get(
   }
 );
 
-/*
-router.patch(
-  '/blood-samples',
-  isAuthenticated,
-  authorizeRoles('nurse'),
-  (req, res) => {
-    try {
-      const { sampleId } = req.body;
-
-      if (!sampleId) {
-        return res.status(400).send({
-          errorMessage: 'Missing sampleId'
-        });
-      }
-
-      const sample = db.prepare(`
-        SELECT *
-        FROM blood_samples
-        WHERE id = ?
-      `).get(sampleId);
-
-      if (!sample) {
-        return res.status(404).send({
-          errorMessage: 'Sample not found'
-        });
-      }
-
-      let nextStatus = sample.status;
-
-      if (sample.status === 'collected') {
-        nextStatus = 'cooling';
-      } else if (sample.status === 'cooling') {
-        nextStatus = 'sent';
-      }
-
-      db.prepare(`
-        UPDATE blood_samples
-        SET status = ?
-        WHERE id = ?
-      `).run(nextStatus, sampleId);
-
-      return res.send({
-        message: `Sample updated to ${nextStatus}`
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      return res.status(500).send({
-        errorMessage: 'Server error'
-      });
-    }
-  }
-);
-*/
 router.patch(
   '/blood-samples/:id',
   isAuthenticated,
@@ -593,58 +417,6 @@ router.post(
 
       return res.status(500).send({
         errorMessage: 'Server error'
-      });
-    }
-  }
-);
-// Admin statistics
-router.get(
-  '/stats',
-  isAuthenticated,
-  authorizeRoles('admin'),
-  (req, res) => {
-    try {
-      const stats = {
-        totalPatients: db.prepare('SELECT COUNT(*) as count FROM patients').get().count,
-        waitingPatients: db.prepare(`
-          SELECT COUNT(*) as count FROM patients WHERE status = 'waiting'
-        `).get().count,
-        inRoomPatients: db.prepare(`
-          SELECT COUNT(*) as count FROM patients WHERE status = 'in_room'
-        `).get().count,
-        registeredPatients: db.prepare(`
-          SELECT COUNT(*) as count FROM patients WHERE status = 'registered'
-        `).get().count,
-        totalRooms: db.prepare('SELECT COUNT(*) as count FROM rooms').get().count,
-        occupiedRooms: db.prepare(`
-          SELECT COUNT(*) as count FROM rooms WHERE status = 'occupied'
-        `).get().count,
-        freeRooms: db.prepare(`
-          SELECT COUNT(*) as count FROM rooms WHERE status = 'free'
-        `).get().count,
-        totalBloodSamples: db.prepare('SELECT COUNT(*) as count FROM blood_samples').get().count,
-        collectedSamples: db.prepare(`
-          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'collected'
-        `).get().count,
-        coolingSamples: db.prepare(`
-          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'cooling'
-        `).get().count,
-        sentSamples: db.prepare(`
-          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'sent'
-        `).get().count,
-        usersByRole: db.prepare(`
-          SELECT role, COUNT(*) as count
-          FROM users
-          GROUP BY role
-        `).all()
-      };
-
-      return res.send({ data: stats });
-
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send({
-        errorMessage: 'Failed to fetch stats'
       });
     }
   }
