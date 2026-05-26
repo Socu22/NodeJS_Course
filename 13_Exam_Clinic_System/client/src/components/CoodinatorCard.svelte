@@ -3,11 +3,11 @@
   import { fetchGet, fetchPatch, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormAuth } from '../store/userStore.js';
-  import io from 'socket.io-client';
+  import socket from '../store/socketStore.js';
   import {BASE_URL_STORE} from '../store/urlStore.js'
+  import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
 
 
-  let isLoading = false;
 
   let rooms = [];
   let patients = [];
@@ -15,11 +15,10 @@
   let selectedRoom = null;
   let selectedPatient = null;
 
-  let socket;
 
   onMount(async () => {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/users/me');
 
@@ -32,35 +31,39 @@
         }
 
         activeFormAuth.set('selectRoom');
-        socket = io($BASE_URL_STORE);
 
         socket.on('patient-confirm', async () => {
           await loadRooms();
         });
 
         await loadRooms();
+      }else{
+        toastr.error('Session check failed');
+        showError(res.data.errorMessage)
+
       }
-    } catch (err) {
-      toastr.error('Session check failed');
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   });
 
   async function loadRooms() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/rooms');
 
       if (res.ok) {
         rooms = res.data.data.filter(
           room => room.status === "free");
+      }else {      
+        toastr.error('Failed loading rooms');
+        showError(res.data.errorMessage)
+
+
       }
-    } catch (err) {
-      toastr.error('Failed loading rooms');
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   }
 
@@ -72,7 +75,7 @@
 
   async function loadPatients() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/patients');
 
@@ -80,18 +83,21 @@
         patients = res.data.data.filter(
           patient => patient.status === 'waiting'
         );
+      } else {
+          toastr.error('Failed loading patients');
+          showError(res.data.errorMessage)
+
+
       }
-    } catch (err) {
-      toastr.error('Failed loading patients');
-    } finally {
-      isLoading = false;
+    }  finally {
+      hideLoading();
     }
   }
   
 
   async function assignPatient(patient) {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchPatch(`/patients/${patient.id}/room`, {
         roomId: selectedRoom.id});
@@ -112,11 +118,13 @@
         });
 
         activeFormAuth.set('selectRoom');
+      } else {
+          toastr.error('Failed assigning patient');
+          showError(res.data.errorMessage)
+
       }
-    } catch (err) {
-      toastr.error('Assignment failed');
-    } finally {
-      isLoading = false;
+    }  finally {
+      hideLoading();
     }
   }
 
@@ -134,7 +142,7 @@
       <div class="form-section">
         <h3>Select Room</h3>
 
-        {#if isLoading}
+        {#if $isLoading}
           <p>Loading...</p>
         {:else}
           <table>
@@ -182,7 +190,7 @@
 
         <h3>Assign Patient</h3>
 
-        {#if isLoading}
+        {#if $isLoading}
           <p>Loading...</p>
         {:else}
           <table>

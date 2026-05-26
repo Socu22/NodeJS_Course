@@ -2,7 +2,10 @@
     import { onMount } from 'svelte';
     import { fetchGet, fetchPost,fetchPut } from '../util/fetchUtil.js';
     import toastr from 'toastr';
+    import socket from '../store/socketStore.js';
     import { user, activeFormAuth } from '../store/userStore.js';
+    import { isLoading, showLoading, hideLoading } from '../store/loadingStore.js'; 
+
 
     let cpr = '';
     let email = '';
@@ -12,7 +15,6 @@
     let token = '';
     let role = 'user';
 
-    let isLoading = false;
 
     // SESSION CHECK
     onMount(async () => {
@@ -28,7 +30,7 @@
 
     // LOGIN
     async function handleLogin() {
-      isLoading = true;
+      showLoading();
 
       try {
         const res = await fetchPost('/auth/login', { username, password });
@@ -38,18 +40,21 @@
           $activeFormAuth = 'user';
           username = '';
           password = '';
+          socket.connect();
           toastr.success('Login successful!');
         } else {
-          toastr.error(res.data.errorMessage || 'Login failed');
+          toastr.error('Login failed');
+          showError(res.data.errorMessage)
+
         }
       } finally {
-        isLoading = false;
+        hideLoading();
       }
     }
 
     // UPDATE USER
     async function handleUpdateUser() {
-      isLoading = true;
+      showLoading();
 
       try {
         const res = await fetchPut("/users/me", {
@@ -65,20 +70,19 @@
           toastr.success('Update user successful!');
           handleLogout()
         } else {
-          toastr.error(res.data.errorMessage || 'Update user failed');
+          toastr.error('Update user failed');
+          showError(res.data.errorMessage)
+
         }
-      }catch(error){
-        console.log(error);
-        
       } finally {
-        isLoading = false;
+        hideLoading();
       }
       
     }
 
     // SIGNUP
     async function handleSignup() {
-      isLoading = true;
+      showLoading();
 
       try {
         const res = await fetchPost('/auth/signup', {
@@ -95,19 +99,19 @@
           role = 'user';
           toastr.success('Signup successful!');
         } else {
-          toastr.error(res.data.errorMessage || 'Signup failed');
+          toastr.error('Signup failed');
+          showError(res.data.errorMessage)
+
         }
-      }catch(error){
-        console.log(error);
-        
-      } finally {
-        isLoading = false;
+      }
+      finally {
+        hideLoading();
       }
     }
 
     // REQUEST RESET EMAIL
     async function handleForgotPassword() {
-      isLoading = true;
+      showLoading();
 
       try {
         const res = await fetchPost('/auth/forgotpassword', { email });
@@ -117,16 +121,18 @@
           email =''
           toastr.success('Reset email sent!');
         } else {
-          toastr.error(res.data.errorMessage || 'Failed to send email');
+          toastr.error('Failed to send email');
+          showError(res.data.errorMessage)
+
         }
       } finally {
-        isLoading = false;
+        hideLoading();
       }
     }
 
     // RESET PASSWORD (token + new password)
     async function handleResetPassword() {
-      isLoading = true;
+      showLoading();
 
       try {
         const res = await fetchPost('/auth/resetpassword', {
@@ -139,10 +145,12 @@
           token = newPassword = '';
           toastr.success('Password changed!');
         } else {
-          toastr.error(res.data.errorMessage || 'Reset failed');
+          toastr.error('Reset failed');
+          showError(res.data.errorMessage)
+
         }
       } finally {
-        isLoading = false;
+        hideLoading();
       }
     }
 
@@ -157,11 +165,13 @@
       toastr.success('Logout successful!')
     } else {
       toastr.error('Logout failed');
+      showError(err)
+
+
     }
 
-  } catch (err) {
-    console.log(err);
-    toastr.error('Network error during logout');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -195,8 +205,8 @@
             <input placeholder={$user.email} type="email" bind:value={email} required />
           </div>
           
-          <button class="submit-button" disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Update'}
+          <button class="submit-button" disabled={$isLoading}>
+            {$isLoading ? 'Loading...' : 'Update'}
           </button>
         </form>
 
@@ -219,8 +229,8 @@
             <input type="password" bind:value={password} placeholder="Enter password" required />
           </div>
 
-          <button class="submit-button" disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Login'}
+          <button class="submit-button" disabled={$isLoading}>
+            {$isLoading ? 'Loading...' : 'Login'}
           </button>
         </form>
 
@@ -262,8 +272,8 @@
             <input type="password" bind:value={password} required />
           </div>
 
-          <button class="submit-button" disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Sign Up'}
+          <button class="submit-button" disabled={$isLoading}>
+            {$isLoading ? 'Loading...' : 'Sign Up'}
           </button>
         </form>
 
@@ -285,8 +295,8 @@
             <input type="email" bind:value={email} required />
           </div>
 
-          <button class="submit-button" disabled={isLoading}>
-            {isLoading ? 'Sending...' : 'Send reset link'}
+          <button class="submit-button" disabled={$isLoading}>
+            {$isLoading ? 'Sending...' : 'Send reset link'}
           </button>
         </form>
 
@@ -307,8 +317,8 @@
             <input type="password" bind:value={newPassword} placeholder="New password" required />
           </div>
 
-          <button class="submit-button" disabled={isLoading}>
-            {isLoading ? 'Changing password...' : 'Change password'}
+          <button class="submit-button" disabled={$isLoading}>
+            {$isLoading ? 'Changing password...' : 'Change password'}
           </button>
         </form>
 

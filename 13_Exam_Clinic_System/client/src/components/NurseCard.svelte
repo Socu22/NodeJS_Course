@@ -3,18 +3,17 @@
   import { fetchGet, fetchPatch, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormAuth } from '../store/userStore.js';
-  import io from 'socket.io-client';
+  import socket from '../store/socketStore.js'
   import { BASE_URL_STORE } from '../store/urlStore.js';
+  import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
 
-  let isLoading = false;
 
   let patient = null;
   let bloodSamples = [];
-  let socket;
 
   onMount(async () => {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/users/me');
 
@@ -28,24 +27,25 @@
 
         activeFormAuth.set('nurseDashboard');
 
-        socket = io($BASE_URL_STORE);
-
         socket.on('room-assignment', async () => {
           await loadAssignedPatient();
         });
 
         await loadAssignedPatient();
+      }else {      
+        toastr.error('Session check failed');
+        showError(res.data.errorMessage)
+
+
       }
-    } catch (err) {
-      toastr.error('Session check failed');
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   });
 
   async function loadAssignedPatient() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchPost('/patients/assignment');
 
@@ -57,11 +57,12 @@
         } else {
           bloodSamples = [];
         }
+      } else {
+          toastr.error('Failed loading patient');
+          showError(res.data.errorMessage)
       }
-    } catch (err) {
-      toastr.error('Failed loading patient');
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   }
 
@@ -71,15 +72,20 @@
      
       if (res.ok) {
         bloodSamples = res.data.data;
+      } else {     
+        toastr.error('Failed loading samples');
+        showError(res.data.errorMessage)
+
+
       }
-    } catch (err) {
-      toastr.error('Failed loading samples');
+    } finally {
+      hideLoading()
     }
   }
 
   async function advanceSample(sample) {
     try {
-      isLoading = true;
+      showLoading();
       
       const res = await fetchPatch(`/blood-samples/${sample.id}`);
 
@@ -89,17 +95,20 @@
         toastr.success('Sample updated');
         socket.emit('nurse-patient-blood-sample-change')
         await loadBloodSamples();
+      } else {       
+        toastr.error('Update failed');
+        showError(res.data.errorMessage)
+
+
       }
-    } catch (err) {
-      toastr.error('Update failed');
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   }
 
   async function confirmPatient() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchPost(`/patients/${patient.id}/confirm`);
 
@@ -111,21 +120,16 @@
 
         await loadAssignedPatient();
 
-        socket = io($BASE_URL_STORE)
-
         socket.emit("nurse-patient-confirm", {
           succesMessage: "patient has been confirmed"
         });
       } else {
-        toastr.error(
-          res.data.errorMessage ||
-          'Cannot confirm patient until all samples are processed'
-        );
+          toastr.error('Failed finishing patient');
+          showError(res.data.errorMessage)
+
       }
-    } catch (err) {
-      toastr.error('Failed finishing patient');
-    } finally {
-      isLoading = false;
+    }  finally {
+      hideLoading();
     }
   }
 
@@ -151,7 +155,7 @@
       <div class="form-section">
         <h3>Assigned Patient</h3>
 
-        {#if isLoading}
+        {#if $isLoading}
           <p>Loading...</p>
 
         {:else if patient}
@@ -179,7 +183,7 @@
       <div class="form-section">
         <h3>Blood Samples</h3>
 
-        {#if isLoading}
+        {#if $isLoading}
           <p>Loading...</p>
 
         {:else if bloodSamples.length > 0 || bloodSamples.length === 0 && patient !==null}

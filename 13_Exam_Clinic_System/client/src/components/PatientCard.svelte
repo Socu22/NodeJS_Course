@@ -3,45 +3,52 @@
   import { fetchGet, fetchPost, fetchPatch } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormUser } from '../store/userStore.js';
-  import io from 'socket.io-client';
+  import socket from '../store/socketStore.js'
   import { BASE_URL } from '../store/urlStore.js';
+  import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
+
 
   let patient = null;
   let assignedRoom = null;
   let bloodSamples = [];
 
-  let isLoading = false;
-  let socket;
   let activityInterval;
 
-  onMount(() => {
-    init();
+ onMount(() => {
+  init();
 
-    // heartbeat: keep patient active while page is open
-    activityInterval = setInterval(async () => {
-      try {
-        await fetchPatch('/patients/activity');
-      } catch (err) {
-        console.error('Failed updating activity');
-      }
-    }, 30000);
+  activityInterval = setInterval(() => {
+    updateActivity();
+  }, 30000);
 
-    return () => {
-      socket?.disconnect();
+  return () => {
+    socket?.disconnect();
 
-      if (activityInterval) {
-        clearInterval(activityInterval);
-      }
-    };
-  });
+    if (activityInterval) {
+      clearInterval(activityInterval);
+    }
+  };
+});
+
+async function updateActivity() {
+  try {
+    const res= await fetchPatch('/patients/activity');
+    if(res.ok){
+
+    } else {
+        toastr.error('Failed updating activity');
+        showError(res.data.errorMessage)
+
+    }
+  } finally {
+    hideLoading()
+  }
+}
 
   async function init() {
     $activeFormUser = 'patientAndRoomAssignment';
 
-    socket = io(BASE_URL);
-
     socket.on('room-assignment', (data) => {
-      console.log('room-assignment:', data);
 
       if (patient?.id === data.data.patientId) {
         assignedRoom = data.data;
@@ -63,7 +70,7 @@
 
   async function loadPatient() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/patients/me');
 
@@ -76,13 +83,13 @@
           };
         }
       } else {
-        toastr.error(res.data.errorMessage || 'Failed loading patient');
+        toastr.error('Failed loading patient');
+        showError(res.data.errorMessage)
+
       }
 
-    } catch (err) {
-      toastr.error('Failed loading patient');
-    } finally {
-      isLoading = false;
+    }finally {
+      hideLoading();
     }
   }
 
@@ -92,12 +99,13 @@
 
       if (res.ok) {
         bloodSamples = res.data.data;
-      } else {
-        toastr.error(res.data.errorMessage || 'Failed loading samples');
+      } else {      
+        toastr.error('Failed loading samples');
+        showError(res.data.errorMessage)
       }
 
-    } catch (err) {
-      toastr.error('Failed loading samples');
+    } finally {
+      hideLoading()
     }
   }
 </script>
@@ -108,7 +116,7 @@
     <div class="form-section">
       <h3>Patient Information</h3>
 
-      {#if isLoading}
+      {#if $isLoading}
         <p>Loading...</p>
 
       {:else if patient}

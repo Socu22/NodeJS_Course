@@ -323,6 +323,7 @@ router.post(
     }
 );
 
+
 // ==========================
 // LOGIN
 // ==========================
@@ -424,9 +425,7 @@ router.post('/auth/forgotpassword', async (req, res) => {
 
 router.post('/auth/resetpassword', async (req, res) => {
     try {
-        const { newPassword, token } = req.body;
-        console.log(req.body);
-        
+        const { newPassword, token } = req.body;        
 
         if (!token || !newPassword) {
             return res.status(400).send({ errorMessage: "Missing fields" });
@@ -446,9 +445,7 @@ router.post('/auth/resetpassword', async (req, res) => {
             return res.status(400).send({ errorMessage: "Token expired" });
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-        console.log(newPassword);
-        
+        const hashedPassword = await bcrypt.hash(newPassword, 12);        
 
         db.prepare(
             `UPDATE users 
@@ -499,19 +496,6 @@ router.post('/auth/logout', (req, res) => {
 
 
 
-
-
-// ==========================
-// ADMIN TEST
-// ==========================
-router.get(
-    '/admin',
-    isAuthenticated,
-    authorizeRoles('admin'),
-    (req, res) => {
-        res.send({ message: "Admin access granted" });
-    }
-);
 
 
 // ==========================

@@ -2,19 +2,16 @@
   import { onMount } from 'svelte';
   import { fetchGet } from '../util/fetchUtil.js';
   import toastr from 'toastr';
-  import io from 'socket.io-client';
+  import socket from '../store/socketStore.js'
   import { BASE_URL } from '../store/urlStore.js';
+  import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
 
-  let isLoading = false;
 
   let roomsEmpty = [];
   let roomsFilled = [];
 
-  let socket;
 
   onMount(async () => {
-    socket = io(BASE_URL);
-
     socket.on('room-assignment', async () => {
       await loadRooms();
     });
@@ -24,7 +21,7 @@
 
   async function loadRooms() {
     try {
-      isLoading = true;
+      showLoading();
 
       const res = await fetchGet('/rooms');
 
@@ -38,13 +35,13 @@
         roomsFilled = allRooms.filter(
           room => room.status === 'occupied'
         );
+      } else {
+          toastr.error('Failed loading rooms');
+          showError(res.data.errorMessage)
       }
 
-    } catch (err) {
-      toastr.error('Failed loading rooms');
-
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   }
 </script>

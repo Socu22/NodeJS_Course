@@ -3,13 +3,12 @@
   import { fetchGet, fetchPost } from '../util/fetchUtil.js';
   import toastr from 'toastr';
   import { user, activeFormUser } from '../store/userStore.js';
+  import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
   let cpr = '';
   let email = '';
   let username = '';
   let password = '';
   let role = '';
-
-  let isLoading = false;
 
   // SESSION CHECK
   onMount(async () => {
@@ -21,7 +20,7 @@
 
   // AUTH SIGNUP
   async function handleAuthSignup() {
-    isLoading = true;
+    showLoading();
 
     try {
       const res = await fetchPost('/users', {
@@ -37,10 +36,11 @@
         cpr = username = email = password = role = '';
         toastr.success('Auth Signup successful!');
       } else {
-        toastr.error(res.data.errorMessage || 'Auth Signup failed');
+        toastr.error('Auth Signup failed');
+        showError(res.data.errorMessage)
       }
     } finally {
-      isLoading = false;
+      hideLoading();
     }
   }
 
@@ -92,8 +92,8 @@
 
         
 
-        <button class="submit-button" disabled={isLoading}>
-          {isLoading ? 'Loading...' : 'Admin Sign Up'}
+        <button class="submit-button" disabled={$isLoading}>
+          {$isLoading ? 'Loading...' : 'Admin Sign Up'}
         </button>
       </form>
 

@@ -21,10 +21,13 @@ function trimBody(body) {
     return cleaned;
 }
 
+import { showLoading, hideLoading, showError } from '../store/loadingStore';
+import toastr from 'toastr';
 
 // ---- CORE REQUEST ----
 
 async function request(endpoint, options = {}) {
+    showLoading();
     try {
         const trimmedBody = options.body
             ? JSON.stringify(trimBody(JSON.parse(options.body)))
@@ -42,23 +45,31 @@ async function request(endpoint, options = {}) {
 
         const data = await response.json();
 
+        if (!response.ok) {
+            toastr.error(data.errorMessage || 'Request failed');
+            showError(data.errorMessage || 'Request failed');
+        }
+
         return {
             ok: response.ok,
             status: response.status,
             data
         };
 
-    } catch (error) {
+    }  catch (error) {
         console.error("Fetch error:", error);
+        toastr.error('Network error - please check your connection');
+        showError('Network error - please check your connection');
 
         return {
             ok: false,
             status: 0,
             data: { errorMessage: "Network error" }
         };
+    } finally {
+        hideLoading();
     }
 }
-
 
 // ---- METHODS ----
 

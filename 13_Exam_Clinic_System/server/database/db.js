@@ -67,6 +67,16 @@ async function initializeDatabase() {
       );
     `);
 
+    // Add indexes for performance
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_patients_user_id ON patients(user_id);
+    CREATE INDEX IF NOT EXISTS idx_patients_room_id ON patients(room_id);
+    CREATE INDEX IF NOT EXISTS idx_patients_nurse_id ON patients(nurse_id);
+    CREATE INDEX IF NOT EXISTS idx_patients_status ON patients(status);
+    CREATE INDEX IF NOT EXISTS idx_blood_samples_patient_id ON blood_samples(patient_id);
+    CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status);
+  `);
+
     if (deleteMode) {
       const insertUser = db.prepare(`
         INSERT INTO users (username, password, email, role)
@@ -161,5 +171,17 @@ await initializeDatabase()
     }
   })
   .catch(err => console.error('Failed to initialize database:', err));
+
+
+// Graceful shutdown for database
+process.on('SIGTERM', () => {
+  db.close();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  db.close();
+  process.exit(0);
+});
 
 export default db;

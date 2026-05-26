@@ -44,6 +44,29 @@ import helmet from 'helmet';
 
 app.use(helmet());
 
+// Logging
+import morgan from 'morgan';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+app.use(morgan('combined'))
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+process.on('SIGINT', () => {
+  console.log('SIGINT received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
 
 // ---------- SESSION ----------
 import session from 'express-session';
@@ -53,7 +76,7 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000
   }
 });
@@ -73,7 +96,7 @@ const io = new Server(server, {
 
 io.engine.use(sessionMiddleware);
 
-io.on('connection', (socket) => {
+/*io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
   socket.on('coordinator-assigns-room', (data) => {
@@ -88,6 +111,43 @@ io.on('connection', (socket) => {
     //console.log(data);
     socket.broadcast.emit('patient-blood-sample-change');  
   });
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected:', socket.id);
+  });
+}); */
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  // Coordinator assigns patient to room
+  socket.on('coordinator-assigns-room', (data) => {
+    console.log('Room assignment:', data);
+    // Notify the specific room
+    if (data.roomId) {
+      io.to(`room-${data.roomId}`).emit('room-assignment', data);
+    }
+    // Also broadcast to all coordinators and nurses
+    socket.broadcast.emit('room-assignment', data);
+  });
+
+  // Nurse confirms patient
+  socket.on('nurse-patient-confirm', (data) => {
+    console.log('Patient confirmed:', data);
+    socket.broadcast.emit('patient-confirm', data);
+  });
+
+  // Blood sample status change
+  socket.on('nurse-patient-blood-sample-change', (data) => {
+    console.log('Blood sample status changed:', data);
+    socket.broadcast.emit('patient-blood-sample-change', data);
+  });
+
+  // Patient activity update
+  socket.on('patient-activity', (userId) => {
+    console.log('Patient activity:', userId);
+    socket.broadcast.emit('patient-activity-update', { userId });
+  });
+
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);
   });

@@ -597,4 +597,56 @@ router.post(
     }
   }
 );
+// Admin statistics
+router.get(
+  '/stats',
+  isAuthenticated,
+  authorizeRoles('admin'),
+  (req, res) => {
+    try {
+      const stats = {
+        totalPatients: db.prepare('SELECT COUNT(*) as count FROM patients').get().count,
+        waitingPatients: db.prepare(`
+          SELECT COUNT(*) as count FROM patients WHERE status = 'waiting'
+        `).get().count,
+        inRoomPatients: db.prepare(`
+          SELECT COUNT(*) as count FROM patients WHERE status = 'in_room'
+        `).get().count,
+        registeredPatients: db.prepare(`
+          SELECT COUNT(*) as count FROM patients WHERE status = 'registered'
+        `).get().count,
+        totalRooms: db.prepare('SELECT COUNT(*) as count FROM rooms').get().count,
+        occupiedRooms: db.prepare(`
+          SELECT COUNT(*) as count FROM rooms WHERE status = 'occupied'
+        `).get().count,
+        freeRooms: db.prepare(`
+          SELECT COUNT(*) as count FROM rooms WHERE status = 'free'
+        `).get().count,
+        totalBloodSamples: db.prepare('SELECT COUNT(*) as count FROM blood_samples').get().count,
+        collectedSamples: db.prepare(`
+          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'collected'
+        `).get().count,
+        coolingSamples: db.prepare(`
+          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'cooling'
+        `).get().count,
+        sentSamples: db.prepare(`
+          SELECT COUNT(*) as count FROM blood_samples WHERE status = 'sent'
+        `).get().count,
+        usersByRole: db.prepare(`
+          SELECT role, COUNT(*) as count
+          FROM users
+          GROUP BY role
+        `).all()
+      };
+
+      return res.send({ data: stats });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({
+        errorMessage: 'Failed to fetch stats'
+      });
+    }
+  }
+);
 export default router;
