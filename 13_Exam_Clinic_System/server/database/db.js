@@ -1,27 +1,27 @@
 import { DatabaseSync } from 'node:sqlite';
 import { resetInactivePatientsJob } from '../jobs/patientsJob.js';
 
+// the connction
 const db = new DatabaseSync('clinicDatabase.db');
 
+// whether everything should be deleted, and reinstantiated  
 const deleteMode = process.argv.includes("--delete");
 
-import {
-  bcryptPassword,
-  encryptCPR,
-  decryptCPR
-} from '../utils/encryption.js';
+import {bcryptPassword, encryptCPR, decryptCPR } from '../utils/encryption.js';
 
 async function initializeDatabase() {
   try {
     if (deleteMode) {
+      // drops every table
       db.exec('DROP TABLE IF EXISTS blood_samples;');
       db.exec('DROP TABLE IF EXISTS patients;');
       db.exec('DROP TABLE IF EXISTS rooms;');
       db.exec('DROP TABLE IF EXISTS users;');
     }
-
+    // Makes foreign keys work
     db.exec(`PRAGMA foreign_keys = ON;`);
-
+    
+    // create every tabe
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,17 +67,18 @@ async function initializeDatabase() {
       );
     `);
 
-    // Add indexes for performance
-  db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_patients_user_id ON patients(user_id);
-    CREATE INDEX IF NOT EXISTS idx_patients_room_id ON patients(room_id);
-    CREATE INDEX IF NOT EXISTS idx_patients_nurse_id ON patients(nurse_id);
-    CREATE INDEX IF NOT EXISTS idx_patients_status ON patients(status);
-    CREATE INDEX IF NOT EXISTS idx_blood_samples_patient_id ON blood_samples(patient_id);
-    CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status);
-  `);
+    // created indexes for scalable performance
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_patients_user_id ON patients(user_id);
+      CREATE INDEX IF NOT EXISTS idx_patients_room_id ON patients(room_id);
+      CREATE INDEX IF NOT EXISTS idx_patients_nurse_id ON patients(nurse_id);
+      CREATE INDEX IF NOT EXISTS idx_patients_status ON patients(status);
+      CREATE INDEX IF NOT EXISTS idx_blood_samples_patient_id ON blood_samples(patient_id);
+      CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status);
+    `);
 
     if (deleteMode) {
+      // Inserts all the seeding for a basic workflow
       const insertUser = db.prepare(`
         INSERT INTO users (username, password, email, role)
         VALUES (?, ?, ?, ?);

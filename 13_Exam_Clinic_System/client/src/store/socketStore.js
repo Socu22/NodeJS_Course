@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { io } from 'socket.io-client';
 import { BASE_URL } from './urlStore.js';
 
-// Remove trailing slash and add port if needed
+// Singleton socket used everywhere in client, so as to not have issues with their conncections
 const socketUrl = BASE_URL.replace(/\/$/, '').replace(/^http/, 'ws');
 const socket = io(socketUrl, {
   withCredentials: true,

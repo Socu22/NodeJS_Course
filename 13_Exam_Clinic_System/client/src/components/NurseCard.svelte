@@ -13,7 +13,7 @@
 
   onMount(async () => {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/users/me');
 
@@ -45,7 +45,7 @@
 
   async function loadAssignedPatient() {
     try {
-      showLoading();
+      
 
       const res = await fetchPost('/patients/assignment');
 
@@ -85,7 +85,7 @@
 
   async function advanceSample(sample) {
     try {
-      showLoading();
+      
       
       const res = await fetchPatch(`/blood-samples/${sample.id}`);
 
@@ -108,7 +108,7 @@
 
   async function confirmPatient() {
     try {
-      showLoading();
+      
 
       const res = await fetchPost(`/patients/${patient.id}/confirm`);
 

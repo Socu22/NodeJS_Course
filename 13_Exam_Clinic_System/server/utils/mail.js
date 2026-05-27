@@ -1,68 +1,104 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
+import 'dotenv/config.js';
 
-// Production setup (Gmail)
-/*
-const transporter = nodemailer.createTransport({
-    service: "gmail",
+let transporter;
+
+// ==========================
+// PRODUCTION MAIL TRANSPORT
+// ==========================
+if (process.env.NODE_ENV === 'production') {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
     auth: {
-        user: "your@email.com", 
-        pass: "your-app-password" 
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS
     }
-});*/
+  });
 
-// Mock/testing setup (Ethereal Email)
-// Uncomment the following block to use Ethereal for testing
-const testAccount = await nodemailer.createTestAccount();
-const transporter = nodemailer.createTransport({
-  host: 'smtp.ethereal.email',
-  port: 587,
-  secure: false,
-  auth: {
-    user: testAccount.user,
-    pass: testAccount.pass,
-  },
-});
+  console.log('Using production mail transporter');
 
 
-export async function sendSignupEmail(email, username) {
-    try {
-        const info = await transporter.sendMail({
-            from: '"Auth System" <your@email.com>',
-            to: email,
-            subject: "Welcome!",
-            text: `Hello ${username}, your account was created successfully 🎉`,
-            html: `<b>Hello ${username}, your account was created successfully 🎉</b>`,
-        });
-                
-        // For testing: log the preview URL
-        if (process.env.NODE_ENV === 'test') {
-            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        }
+// ==========================
+// DEVELOPMENT / TEST MAIL
+// ==========================
+} else {
+  const testAccount = await nodemailer.createTestAccount();
 
-        return info;
-    } catch (error) {
-        console.error("Error sending email:", error);
-        throw error;
+  transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass
     }
+  });
+
+  console.log('Using Ethereal test mail transporter');
 }
-export async function sendForgotPasswordResetTokenEmail(email,username,token) {
-    try {
-        const info = await transporter.sendMail({
-            from: '"Auth System" <your@email.com>',
-            to: email,
-            subject: "Welcome!",
-            text: `Hello ${username}, your accounts vertification token was created successfully: ${token}`,
-            html: `<b>Hello ${username}, your accounts vertification token was created successfully: ${token}</b>`,
-        });
-                
-        // For testing: log the preview URL
-        if (process.env.NODE_ENV === 'test') {
-            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        }
 
-        return info;
-    } catch (error) {
-        console.error("Error sending email:", error);
-        throw error;
+// ==========================
+// SIGNUP EMAIL
+// ==========================
+export async function sendSignupEmail(email, username) {
+  try {
+    const info = await transporter.sendMail({
+      from: `"Auth System" <${process.env.MAIL_USER || 'test@ethereal.email'}>`,
+      to: email,
+      subject: 'Welcome!',
+      text: `Hello ${username}, your account was created successfully 🎉`,
+      html: `<b>Hello ${username}, your account was created successfully 🎉</b>`
+    });
+
+    // Show preview URL in non-production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        'Preview URL:',
+        nodemailer.getTestMessageUrl(info)
+      );
     }
+
+    return info;
+
+  } catch (error) {
+    console.error('Error sending signup email:', error);
+    throw error;
+  }
+}
+
+// ==========================
+// RESET TOKEN EMAIL
+// ==========================
+export async function sendForgotPasswordResetTokenEmail(
+  email,
+  username,
+  token
+) {
+  try {
+    const info = await transporter.sendMail({
+      from: `"Auth System" <${process.env.MAIL_USER || 'test@ethereal.email'}>`,
+      to: email,
+      subject: 'Password Reset Token',
+      text: `Hello ${username}, your verification token is: ${token}`,
+      html: `
+        <b>Hello ${username}</b>
+        <p>Your verification token is:</p>
+        <h2>${token}</h2>
+      `
+    });
+
+    // Show preview URL in non-production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        'Preview URL:',
+        nodemailer.getTestMessageUrl(info)
+      );
+    }
+
+    return info;
+
+  } catch (error) {
+    console.error('Error sending reset email:', error);
+    throw error;
+  }
 }

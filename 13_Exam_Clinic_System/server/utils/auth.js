@@ -1,4 +1,4 @@
-
+// Middleware to unsure users with roles only sees what their role allows them to see. 
 // AUTH
 export const isAuthenticated = (req, res, next) => {
     if (!req.session?.user) { // midddleware that makes sure that it is a session user who access the API-endpoints

@@ -139,6 +139,7 @@ router.patch(
   authorizeRoles('admin', 'coordinator'),
   (req, res) => {
     try {
+      // coordinator assigns patient to a room.
       const patientId = req.params.id;
       const { roomId } = req.body;
 
@@ -202,6 +203,7 @@ router.post(
   authorizeRoles('nurse'),
   (req, res) => {
     try {
+      // a nurse gets assigned a patient who is waiting
       const nurseId = req.session.user.id;
 
       db.exec('BEGIN IMMEDIATE');
@@ -271,6 +273,7 @@ router.get(
   authorizeRoles('nurse'),
   (req, res) => {
     try {
+      // a nurse sees assgined patient blood_samples
       const patientId = req.params.id;
 
       const samples = db.prepare(`
@@ -297,6 +300,7 @@ router.patch(
   authorizeRoles('nurse'),
   (req, res) => {
     try {
+      // a nurse changes status on one of the blood_samples
       const sampleId = req.params.id;
 
       const sample = db.prepare(`
@@ -341,6 +345,7 @@ router.post(
   authorizeRoles('admin', 'nurse'),
   (req, res) => {
     try {
+      //  a nurse is done with a patient
       const patientId  =  req.params.id;
 
       if (!patientId) {

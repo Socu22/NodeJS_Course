@@ -4,7 +4,7 @@
     import toastr from 'toastr';
     import socket from '../store/socketStore.js';
     import { user, activeFormAuth } from '../store/userStore.js';
-    import { isLoading, showLoading, hideLoading } from '../store/loadingStore.js'; 
+    import { isLoading, showLoading, hideLoading, showError } from '../store/loadingStore.js'; 
 
 
     let cpr = '';
@@ -30,7 +30,7 @@
 
     // LOGIN
     async function handleLogin() {
-      showLoading();
+      
 
       try {
         const res = await fetchPost('/auth/login', { username, password });
@@ -54,7 +54,7 @@
 
     // UPDATE USER
     async function handleUpdateUser() {
-      showLoading();
+      
 
       try {
         const res = await fetchPut("/users/me", {
@@ -82,7 +82,7 @@
 
     // SIGNUP
     async function handleSignup() {
-      showLoading();
+      
 
       try {
         const res = await fetchPost('/auth/signup', {
@@ -111,7 +111,7 @@
 
     // REQUEST RESET EMAIL
     async function handleForgotPassword() {
-      showLoading();
+      
 
       try {
         const res = await fetchPost('/auth/forgotpassword', { email });
@@ -132,7 +132,7 @@
 
     // RESET PASSWORD (token + new password)
     async function handleResetPassword() {
-      showLoading();
+      
 
       try {
         const res = await fetchPost('/auth/resetpassword', {

@@ -1,9 +1,13 @@
 import db from '../database/db.js';
 
-export function resetInactivePatientsJob(timeoutMinutes = 60) {
+// notice: All timestamps are stored and processed in UTC to ensure global consistency across all servers and user time zones.
+// in denmark utc time is ourTime - 2 hours.
+
+export function resetInactivePatientsJob(timeoutMinutes = 60) { // The condition is that x minuttes has gone by since last patients/activity 
   try {
     db.exec('BEGIN');
 
+    // sets room free of an inactive patient
     db.prepare(`
       UPDATE rooms
       SET status = 'free'
@@ -15,7 +19,7 @@ export function resetInactivePatientsJob(timeoutMinutes = 60) {
           AND datetime(last_activity, '+' || ? || ' minutes') < CURRENT_TIMESTAMP
       )
     `).run(timeoutMinutes);
-
+    // makes an inactive patient, inactive according to workflow.
     db.prepare(`
       UPDATE patients
       SET
@@ -35,11 +39,4 @@ export function resetInactivePatientsJob(timeoutMinutes = 60) {
 
     console.error('resetInactivePatientsJob failed:', err);
   }
-}
-export function updatePatientActivity(userId) {
-  db.prepare(`
-    UPDATE patients
-    SET last_activity = CURRENT_TIMESTAMP
-    WHERE user_id = ?
-  `).run(userId);
 }

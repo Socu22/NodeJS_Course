@@ -21,7 +21,7 @@
 
   async function loadRooms() {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/rooms');
 

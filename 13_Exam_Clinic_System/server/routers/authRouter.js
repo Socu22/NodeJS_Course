@@ -5,7 +5,6 @@ import db from '../database/db.js';
 import { sendSignupEmail, sendForgotPasswordResetTokenEmail } from '../utils/mail.js';
 import { encryptCPR,decryptCPR } from '../utils/encryption.js';
 import { isAuthenticated, authorizeRoles } from '../utils/auth.js';
-import { updatePatientActivity } from '../jobs/patientsJob.js';
 
 const router = Router();
 /*
@@ -84,6 +83,7 @@ router.post('/auth/signup', async (req, res) => {
     });
     }
 
+    // every password is hashed
     const hashedPassword = await bcrypt.hash(password, 12);
     const role = 'patient';
 
@@ -96,10 +96,12 @@ router.post('/auth/signup', async (req, res) => {
 
     const userId = userResult.lastInsertRowid;
 
+    // makes sure that cpr is encryped 
     createPatient(userId, cpr);
 
     db.exec('COMMIT');
-
+    
+    // sends a signup mail
     await sendSignupEmail(email, username);
 
     return res.send({
@@ -134,6 +136,7 @@ router.post('/auth/signup', async (req, res) => {
 // ==========================//
 
 router.get('/users/me', isAuthenticated, (req, res) => {
+    // The way to get session in frontend
     res.send({ data: req.session.user });
 });
 
@@ -149,7 +152,7 @@ router.put('/users/me', isAuthenticated, async (req, res) => {
         if (!existingUser) {
             return res.status(404).send({ errorMessage: "User not found" });
         }
-
+        // A way to update username and email safely, with at failsafe
         const updatedUsername = username ?? existingUser.username;
         const updatedEmail = email ?? existingUser.email;
 
@@ -175,6 +178,7 @@ router.put('/users/me', isAuthenticated, async (req, res) => {
 });
 router.get('/patients/me', isAuthenticated, authorizeRoles('patient'), (req, res) => {
     try {
+        // If you are a patient, then this method will work.
         const userId = req.session.user.id;
 
         const patient = db.prepare(`
@@ -191,7 +195,7 @@ router.get('/patients/me', isAuthenticated, authorizeRoles('patient'), (req, res
                 errorMessage: "Patient not found"
             });
         }
-
+        // decrypts your cpr so you can see it.
         patient.cpr = decryptCPR(patient.cpr_encrypted);
         delete patient.cpr_encrypted;
 
@@ -210,6 +214,7 @@ router.patch(
   authorizeRoles('patient'),
   (req, res) => {
     try {
+      // In case patients wait for them to be assigned a room. This will log their activity as they wait.
       const userId = req.session.user.id;
 
       db.prepare(`
@@ -237,6 +242,7 @@ router.get(
   authorizeRoles('patient'),
   (req, res) => {
     try {
+      // if you are a patient then you can get your blood_samples
       const user = req.session.user;
 
       if (!user?.id) {
@@ -362,7 +368,7 @@ router.post('/auth/login', async (req, res) => {
         if (!user) {
             return res.status(400).send({ errorMessage: "Invalid credentials" });
         }
-
+        // compare hashes instead of pure txt for security  
         const valid = await bcrypt.compare(password, user.password);
 
         if (!valid) {
@@ -370,6 +376,7 @@ router.post('/auth/login', async (req, res) => {
         }
 
        if (user.role === 'patient'){
+            // workflow for patients status 
             db.prepare(`
                 UPDATE patients
                 SET status = 'waiting'
@@ -520,27 +527,4 @@ router.post('/auth/logout', (req, res) => {
 
 
 
-
-
-// ==========================
-// CPR DECRYPTION TEST
-// ==========================
-router.get('/test', (req, res) => {
-  try {
-    const patient = db.prepare(`
-      SELECT cpr_encrypted FROM patients WHERE user_id = ?
-    `).get(3);
-
-    if (!patient) {
-      return res.status(404).send({ error: 'Patient not found' });
-    }
-
-    const cpr = decryptCPR(patient.cpr_encrypted);
-
-    return res.send({ data: cpr });
-
-  } catch (err) {
-    return res.status(500).send({ error: 'Failed to decrypt CPR' });
-  }
-});
 export default router;

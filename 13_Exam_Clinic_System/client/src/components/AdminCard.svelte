@@ -20,7 +20,7 @@
 
   // AUTH SIGNUP
   async function handleAuthSignup() {
-    showLoading();
+    
 
     try {
       const res = await fetchPost('/users', {

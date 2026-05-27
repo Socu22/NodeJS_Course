@@ -26,23 +26,24 @@ function trimBody(body) {
 // ---- CORE REQUEST ----
 
 async function request(endpoint, options = {}) {
-    showLoading(); 
+    showLoading(); // loads when a request happens.  
     try {
-        const trimmedBody = options.body
+        // The trimmed body
+        const trimmedBody = options.body 
             ? JSON.stringify(trimBody(JSON.parse(options.body)))
             : undefined;
-
+        // the fetch to get response 
         const response = await fetch(`${BASE_URL}${endpoint}`, {
-            credentials: 'include',
+            ...options, // inserts options
+            credentials: 'include', // Force include for sesssion
             headers: {
                 "Content-Type": "application/json",
-                ...(options.headers || {})
+                ...(options.headers || {}) // external headers, without overwriting content-type
             },
-            ...options,
-            body: trimmedBody
+            body: trimmedBody // Force the trimmed body
         });
-
-        const data = await response.json();
+        // json response 
+        const data = await response.json(); 
 
         if (!response.ok) {
             toastr.error(data.errorMessage || 'Request failed');
@@ -50,7 +51,7 @@ async function request(endpoint, options = {}) {
         }
 
         return {
-            ok: response.ok,
+            ok: response.ok, 
             status: response.status,
             data
         };

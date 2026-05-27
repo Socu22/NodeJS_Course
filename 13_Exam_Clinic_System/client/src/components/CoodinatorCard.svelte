@@ -18,7 +18,7 @@
 
   onMount(async () => {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/users/me');
 
@@ -49,7 +49,7 @@
 
   async function loadRooms() {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/rooms');
 
@@ -75,7 +75,7 @@
 
   async function loadPatients() {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/patients');
 
@@ -97,7 +97,7 @@
 
   async function assignPatient(patient) {
     try {
-      showLoading();
+      
 
       const res = await fetchPatch(`/patients/${patient.id}/room`, {
         roomId: selectedRoom.id});

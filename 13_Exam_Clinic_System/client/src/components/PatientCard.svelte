@@ -70,7 +70,7 @@ async function updateActivity() {
 
   async function loadPatient() {
     try {
-      showLoading();
+      
 
       const res = await fetchGet('/patients/me');
 
